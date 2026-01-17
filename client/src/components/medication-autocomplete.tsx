@@ -46,6 +46,17 @@ export function MedicationAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const normalizeStrengths = (rawStrengths: unknown): string[] => {
+    if (!rawStrengths) return [];
+    if (Array.isArray(rawStrengths)) {
+      return rawStrengths.filter((s) => typeof s === "string" && s.trim());
+    }
+    if (typeof rawStrengths === "string") {
+      return rawStrengths.split(/[;,]/).map((s) => s.trim()).filter(Boolean);
+    }
+    return [];
+  };
+
   useEffect(() => {
     if (inputValue.length < 2) {
       setSuggestions([]);
@@ -64,13 +75,15 @@ export function MedicationAutocomplete({
         );
         const data = await response.json();
         
-        const [, codes, , names, extras] = data;
+        // API response format: [count, names, extras, displayNames]
+        // where extras = { STRENGTHS_AND_FORMS: [[strengths1], [strengths2], ...] }
+        const [, names, extras] = data;
         
         if (names && names.length > 0) {
           const formattedSuggestions: DrugSuggestion[] = names.map((name: string, index: number) => ({
             name,
-            rxcui: codes[index],
-            strengths: extras?.STRENGTHS_AND_FORMS?.[index] || [],
+            rxcui: name,
+            strengths: normalizeStrengths(extras?.STRENGTHS_AND_FORMS?.[index]),
           }));
           
           setSuggestions(formattedSuggestions);
