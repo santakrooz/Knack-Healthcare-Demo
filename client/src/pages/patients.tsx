@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   Users,
   Plus,
@@ -96,12 +98,39 @@ function getProfileImage(patient: Patient): string | undefined {
 export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const { toast } = useToast();
 
   const { data: patientsData, isLoading } = useQuery<KnackRecordsResponse<Patient>>({
     queryKey: ["/api/patients"],
   });
   
   const patients = patientsData?.records;
+
+  const deleteMutation = useMutation({
+    mutationFn: async (patientId: string) => {
+      return apiRequest("DELETE", `/api/patients/${patientId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      toast({
+        title: "Patient Deleted",
+        description: "The patient record has been removed.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete patient",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = (patient: Patient) => {
+    if (window.confirm(`Are you sure you want to delete ${getPatientName(patient)}?`)) {
+      deleteMutation.mutate(patient.id);
+    }
+  };
 
   const filteredPatients = patients?.filter((patient) => {
     const searchLower = searchQuery.toLowerCase();
@@ -267,7 +296,11 @@ export default function Patients() {
                               Edit
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => handleDelete(patient)}
+                            data-testid={`button-delete-patient-${patient.id}`}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
@@ -322,6 +355,13 @@ export default function Patients() {
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDelete(patient)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
