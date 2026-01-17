@@ -73,7 +73,7 @@ export async function registerRoutes(
       let pendingCount = 0;
       if (appointmentsData.records) {
         pendingCount = appointmentsData.records.filter(
-          (apt: any) => apt.field_30_raw === "Pending" || apt.field_30_raw === "pending"
+          (apt: any) => apt.field_18_raw === "Pending" || apt.field_18_raw === "pending"
         ).length;
       }
 
@@ -202,15 +202,15 @@ export async function registerRoutes(
   app.get("/api/appointments/today", async (_req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.APPOINTMENTS}/records?rows_per_page=20&sort_field=field_29&sort_order=asc`
+        `/objects/${KNACK_OBJECTS.APPOINTMENTS}/records?rows_per_page=20&sort_field=field_21&sort_order=asc`
       );
       const data = await response.json() as any;
       
       // Filter for today's appointments
       const today = new Date().toISOString().split("T")[0];
       const todayAppointments = (data.records || []).filter((apt: any) => {
-        if (apt.field_29_raw?.date) {
-          return apt.field_29_raw.date.includes(today.replace(/-/g, "/"));
+        if (apt.field_21_raw?.date) {
+          return apt.field_21_raw.date.includes(today.replace(/-/g, "/"));
         }
         return true;
       });
@@ -351,75 +351,26 @@ export async function registerRoutes(
     }
   });
 
-  // Diagnoses endpoints
+  // Note: Diagnoses endpoints removed - no Diagnoses object exists in current Knack schema
+  // The available objects are: Accounts, Patients, Staff, Appointments, Prescriptions, Prescription Refill Requests
   app.get("/api/diagnoses", async (_req: Request, res: ExpressResponse) => {
-    try {
-      const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.DIAGNOSES}/records?rows_per_page=100`
-      );
-      return handleKnackResponse(response, res);
-    } catch (error) {
-      console.error("Diagnoses fetch error:", error);
-      res.status(500).json({ error: "Failed to fetch diagnoses" });
-    }
+    res.json({ records: [], total_records: 0, message: "Diagnoses table not configured in Knack" });
   });
 
-  app.get("/api/diagnoses/:id", async (req: Request, res: ExpressResponse) => {
-    try {
-      const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.DIAGNOSES}/records/${req.params.id}`
-      );
-      return handleKnackResponse(response, res);
-    } catch (error) {
-      console.error("Diagnosis fetch error:", error);
-      res.status(500).json({ error: "Failed to fetch diagnosis" });
-    }
+  app.get("/api/diagnoses/:id", async (_req: Request, res: ExpressResponse) => {
+    res.status(404).json({ error: "Diagnoses table not configured in Knack" });
   });
 
-  app.post("/api/diagnoses", async (req: Request, res: ExpressResponse) => {
-    try {
-      const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.DIAGNOSES}/records`,
-        "POST",
-        req.body
-      );
-      return handleKnackResponse(response, res);
-    } catch (error) {
-      console.error("Diagnosis create error:", error);
-      res.status(500).json({ error: "Failed to create diagnosis" });
-    }
+  app.post("/api/diagnoses", async (_req: Request, res: ExpressResponse) => {
+    res.status(501).json({ error: "Diagnoses table not configured in Knack" });
   });
 
-  app.put("/api/diagnoses/:id", async (req: Request, res: ExpressResponse) => {
-    try {
-      const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.DIAGNOSES}/records/${req.params.id}`,
-        "PUT",
-        req.body
-      );
-      return handleKnackResponse(response, res);
-    } catch (error) {
-      console.error("Diagnosis update error:", error);
-      res.status(500).json({ error: "Failed to update diagnosis" });
-    }
+  app.put("/api/diagnoses/:id", async (_req: Request, res: ExpressResponse) => {
+    res.status(501).json({ error: "Diagnoses table not configured in Knack" });
   });
 
-  app.delete("/api/diagnoses/:id", async (req: Request, res: ExpressResponse) => {
-    try {
-      const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.DIAGNOSES}/records/${req.params.id}`,
-        "DELETE"
-      );
-      if (response.ok) {
-        res.json({ success: true });
-      } else {
-        const data = await response.json() as any;
-        res.status(response.status).json({ error: data.message });
-      }
-    } catch (error) {
-      console.error("Diagnosis delete error:", error);
-      res.status(500).json({ error: "Failed to delete diagnosis" });
-    }
+  app.delete("/api/diagnoses/:id", async (_req: Request, res: ExpressResponse) => {
+    res.status(501).json({ error: "Diagnoses table not configured in Knack" });
   });
 
   // Insurance companies endpoints

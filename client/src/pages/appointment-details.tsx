@@ -7,7 +7,6 @@ import {
   User,
   UserCheck,
   UserPlus,
-  MapPin,
   FileText,
   Edit,
 } from "lucide-react";
@@ -65,15 +64,13 @@ export default function AppointmentDetails() {
     );
   }
 
-  const patientName = getPatientName(appointment.field_74_raw);
-  const providerName = getProviderName(appointment.field_77_raw);
-  const appointmentDate = formatKnackDate(appointment.field_29_raw);
-  const appointmentTime = formatKnackTime(appointment.field_29_raw);
-  const status = appointment.field_30 || "Scheduled";
-  const appointmentType = appointment.field_32 || "General";
-  const notes = appointment.field_31 || "";
-  const location = (appointment as any).field_83 || "Main Office";
-  const referringPhysician = appointment.field_8 || "";
+  const patientName = getPatientName(appointment.field_70_raw);
+  const providerName = getProviderName(appointment.field_71_raw);
+  const appointmentDate = formatKnackDate(appointment.field_21_raw) || formatKnackDate(appointment.field_17_raw);
+  const appointmentTime = appointment.field_19 || formatKnackTime(appointment.field_21_raw) || "";
+  const status = appointment.field_18 || "Pending";
+  const reason = appointment.field_20 || "";
+  const referringPhysician = appointment.field_99 || "";
 
   return (
     <div className="p-6 lg:p-8">
@@ -112,10 +109,6 @@ export default function AppointmentDetails() {
               <StatusBadge status={status} />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Type</span>
-              <span className="font-medium">{appointmentType}</span>
-            </div>
-            <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Date</span>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -126,14 +119,7 @@ export default function AppointmentDetails() {
               <span className="text-muted-foreground">Time</span>
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{appointmentTime}</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Location</span>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{location}</span>
+                <span className="font-medium">{appointmentTime || "TBD"}</span>
               </div>
             </div>
           </CardContent>
@@ -179,16 +165,16 @@ export default function AppointmentDetails() {
           </CardContent>
         </Card>
 
-        {notes && (
+        {reason && (
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-purple-600" />
-                Notes
+                Reason for Visit
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground whitespace-pre-wrap">{notes}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">{reason}</p>
             </CardContent>
           </Card>
         )}

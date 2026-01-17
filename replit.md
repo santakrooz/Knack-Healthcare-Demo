@@ -34,16 +34,16 @@ The server acts as a proxy layer between the React frontend and the Knack API, h
 - **Primary Storage**: Knack (Backend-as-a-Service) accessed via REST API
 - **Database Schema**: Drizzle ORM with PostgreSQL configuration (for user authentication/session storage)
 
-#### Knack Objects Mapping
+#### Knack Objects Mapping (Updated January 2026)
 | Object ID | Name | Key Fields |
 |-----------|------|------------|
-| object_2 | Patients | field_6 (name), field_7 (email), field_44 (phone), field_9 (status) |
-| object_3 | Staff/Accounts | field_11 (name), field_12 (email), field_66 (role), field_72 (specialty) |
+| object_1 | Accounts | field_1 (name), field_2 (email), field_4 (status) |
+| object_2 | Patients | field_6 (name), field_7 (email), field_44 (phone), field_9 (status), field_46 (DOB), field_47 (medical history) |
+| object_3 | Staff | field_11 (name), field_12 (email), field_66 (role), field_72 (specialty) |
 | object_4 | New Patient Forms | (intake forms) |
-| object_5 | Diagnoses | field_16-23 (diagnosis data) |
-| object_6 | Prescriptions | field_24-28 (prescription data) |
-| object_7 | Appointments | field_29-31 (appointment data) |
-| object_8 | Insurance Companies | field_32-36 (insurance data) |
+| object_5 | Appointments | field_17 (date), field_18 (status), field_19 (preferred time), field_20 (reason), field_21 (scheduled date), field_70 (patient), field_71 (provider), field_99 (referring physician) |
+| object_6 | Prescriptions | field_80 (medication), field_24 (instructions), field_25 (issue date), field_26 (expiration), field_27 (refills), field_28 (status), field_75 (patient), field_76 (provider) |
+| object_7 | Prescription Refill Requests | field_29 (request date), field_30 (status), field_74 (patient), field_77 (approved by), field_78 (prescriptions) |
 
 **Important**: Patients (object_2) and Staff (object_3) are separate tables with different field structures:
 - Patient names use `field_6` / `field_6_raw`

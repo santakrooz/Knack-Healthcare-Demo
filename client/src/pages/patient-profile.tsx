@@ -83,7 +83,7 @@ export default function PatientProfile() {
   });
 
   const patientAppointments = appointmentsData?.records?.filter(
-    apt => apt.field_74_raw?.some((p: KnackConnectionField) => p.id === patientId)
+    apt => apt.field_70_raw?.some((p: KnackConnectionField) => p.id === patientId)
   ) || [];
 
   const patientPrescriptions = prescriptionsData?.records?.filter(
@@ -254,13 +254,13 @@ export default function PatientProfile() {
                     >
                       <div>
                         <p className="font-medium">
-                          {formatKnackDate(apt.field_29_raw)} at {formatKnackTime(apt.field_29_raw)}
+                          {formatKnackDate(apt.field_21_raw) || formatKnackDate(apt.field_17_raw)} at {apt.field_19 || formatKnackTime(apt.field_21_raw) || "TBD"}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {apt.field_32 || "General appointment"}
+                          {apt.field_20 || "General appointment"}
                         </p>
                       </div>
-                      <StatusBadge status={apt.field_30 || "pending"} />
+                      <StatusBadge status={apt.field_18 || "pending"} />
                     </Link>
                   ))}
                 </div>

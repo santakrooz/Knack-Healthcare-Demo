@@ -27,10 +27,10 @@ export const KNACK_OBJECTS = {
   STAFF: "object_3",             // Staff/Accounts table
   ACCOUNTS: "object_3",          // Alias for Staff (legacy)
   NEW_PATIENT_FORMS: "object_4", // Patient intake forms (empty)
-  DIAGNOSES: "object_5",         // Diagnoses
+  APPOINTMENTS: "object_5",      // Appointments
   PRESCRIPTIONS: "object_6",     // Prescriptions
-  APPOINTMENTS: "object_7",      // Appointments
-  INSURANCE_COMPANIES: "object_8", // Insurance companies
+  REFILL_REQUESTS: "object_7",   // Prescription Refill Requests
+  INSURANCE_COMPANIES: "object_8", // Insurance companies (may not exist)
 } as const;
 
 // Name field type from Knack
@@ -231,49 +231,41 @@ export interface Prescription {
   field_76_raw?: KnackConnectionField[];
 }
 
-// Appointment type - object_7 (Actual field mappings from API)
+// Appointment type - object_5 (Correct field mappings from Knack schema)
 export interface Appointment {
   id: string;
   
-  // Referring Physician - field_8 (text field)
-  field_8?: string;
-  field_8_raw?: string;
+  // Appointment Date - field_17
+  field_17?: string;
+  field_17_raw?: KnackDateField;
   
-  // Appointment Date/Time - field_29
-  field_29: string;
-  field_29_raw: KnackDateField;
+  // Status - field_18 (Pending, Approved, etc.)
+  field_18?: string;
+  field_18_raw?: string;
   
-  // Status - field_30 (Pending, Scheduled, Requested, etc.)
-  field_30: string;
-  field_30_raw: string;
+  // Preferred Time - field_19
+  field_19?: string;
+  field_19_raw?: string;
   
-  // Notes - field_31
-  field_31?: string;
-  field_31_raw?: string;
+  // Reason For Visit - field_20
+  field_20?: string;
+  field_20_raw?: string;
   
-  // Reason/Type - field_32
-  field_32?: string;
-  field_32_raw?: string;
+  // Scheduled Appointment Date - field_21
+  field_21?: string;
+  field_21_raw?: KnackDateField;
   
-  // Created Date - field_33
-  field_33?: string;
-  field_33_raw?: KnackDateField;
+  // Patient connection - field_70
+  field_70?: string;
+  field_70_raw?: KnackConnectionField[];
   
-  // Updated Date - field_34
-  field_34?: string;
-  field_34_raw?: KnackDateField;
+  // Provider connection (Scheduled With) - field_71
+  field_71?: string;
+  field_71_raw?: KnackConnectionField[];
   
-  // Patient connection - field_74
-  field_74?: string;
-  field_74_raw?: KnackConnectionField[];
-  
-  // Provider connection - field_77
-  field_77?: string;
-  field_77_raw?: KnackConnectionField[];
-  
-  // Prescription connection - field_78
-  field_78?: string;
-  field_78_raw?: KnackConnectionField[];
+  // Referring Physician - field_99
+  field_99?: string;
+  field_99_raw?: string;
 }
 
 // Diagnosis type - object_5
@@ -378,11 +370,14 @@ export const insertPatientFormSchema = z.object({
 });
 
 export const insertAppointmentSchema = z.object({
-  field_29: z.string().min(1, "Appointment date/time is required"),
-  field_74: z.array(z.string()).min(1, "Patient is required"),
-  field_30: z.string().default("Scheduled"),
-  field_31: z.string().optional(),
-  field_77: z.array(z.string()).optional(),
+  field_17: z.string().min(1, "Appointment date is required"),
+  field_70: z.array(z.string()).min(1, "Patient is required"),
+  field_18: z.string().default("Pending"),
+  field_19: z.string().optional(), // Preferred Time
+  field_20: z.string().optional(), // Reason for visit
+  field_21: z.string().optional(), // Scheduled appointment date
+  field_71: z.array(z.string()).optional(), // Provider
+  field_99: z.string().optional(), // Referring Physician
 });
 
 export const insertPrescriptionSchema = z.object({

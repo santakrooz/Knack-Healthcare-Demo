@@ -13,7 +13,6 @@ import {
   Trash2,
   Filter,
   UserCheck,
-  Pill,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,15 +57,15 @@ export default function Appointments() {
 
   const filteredAppointments = appointments?.filter((appointment) => {
     const searchLower = searchQuery.toLowerCase();
-    const patientName = getPatientName(appointment.field_74_raw).toLowerCase();
-    const providerName = getProviderName(appointment.field_77_raw).toLowerCase();
+    const patientName = getPatientName(appointment.field_70_raw).toLowerCase();
+    const providerName = getProviderName(appointment.field_71_raw).toLowerCase();
     const matchesSearch =
       patientName.includes(searchLower) ||
       providerName.includes(searchLower) ||
-      (appointment.field_32 || "").toLowerCase().includes(searchLower);
+      (appointment.field_20 || "").toLowerCase().includes(searchLower);
     const matchesStatus =
       statusFilter === "all" ||
-      (appointment.field_30 || "").toLowerCase() === statusFilter.toLowerCase();
+      (appointment.field_18 || "").toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -152,7 +151,7 @@ export default function Appointments() {
                   <TableHead className="w-[200px]">Date & Time</TableHead>
                   <TableHead>Patient</TableHead>
                   <TableHead>Provider</TableHead>
-                  <TableHead>Prescription</TableHead>
+                  <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -171,11 +170,11 @@ export default function Appointments() {
                         </div>
                         <div>
                           <p className="font-medium">
-                            {formatKnackDate(appointment.field_29_raw)}
+                            {formatKnackDate(appointment.field_21_raw) || formatKnackDate(appointment.field_17_raw)}
                           </p>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Clock className="h-3 w-3" />
-                            <span>{formatKnackTime(appointment.field_29_raw) || "TBD"}</span>
+                            <span>{appointment.field_19 || formatKnackTime(appointment.field_21_raw) || "TBD"}</span>
                           </div>
                         </div>
                       </div>
@@ -183,29 +182,22 @@ export default function Appointments() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span>{getPatientName(appointment.field_74_raw)}</span>
+                        <span>{getPatientName(appointment.field_70_raw)}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <UserCheck className="h-4 w-4 text-muted-foreground" />
-                        <span>{getProviderName(appointment.field_77_raw)}</span>
+                        <span>{getProviderName(appointment.field_71_raw)}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {appointment.field_78_raw && appointment.field_78_raw.length > 0 ? (
-                        <div className="flex items-center gap-2">
-                          <Pill className="h-4 w-4 text-purple-500" />
-                          <span className="truncate max-w-[150px]">
-                            {appointment.field_78_raw[0].identifier}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">None</span>
-                      )}
+                      <span className="truncate max-w-[150px]">
+                        {appointment.field_20 || "—"}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={appointment.field_30 || "pending"} />
+                      <StatusBadge status={appointment.field_18 || "pending"} />
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

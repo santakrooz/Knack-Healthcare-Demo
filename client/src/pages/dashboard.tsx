@@ -171,13 +171,13 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {appointment.field_74_raw?.[0]?.identifier || "Unknown Patient"}
+                        {appointment.field_70_raw?.[0]?.identifier || "Unknown Patient"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {formatKnackTime(appointment.field_29_raw) || "Time TBD"}
+                        {appointment.field_19 || formatKnackTime(appointment.field_21_raw) || "Time TBD"}
                       </p>
                     </div>
-                    <StatusBadge status={appointment.field_30 || "pending"} />
+                    <StatusBadge status={appointment.field_18 || "pending"} />
                   </div>
                 ))}
               </div>

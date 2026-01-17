@@ -38,8 +38,8 @@ export default function AppointmentNew() {
     referringPhysician: "",
     date: "",
     time: "",
-    status: "Scheduled",
-    notes: "",
+    status: "Pending",
+    reason: "",
   });
 
   const { data: patientsData } = useQuery<KnackRecordsResponse<Patient>>({
@@ -55,16 +55,24 @@ export default function AppointmentNew() {
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const dateTime = `${data.date} ${data.time}`;
-      const payload: Record<string, any> = {
-        field_29: dateTime,
-        field_30: data.status,
-        field_31: data.notes,
-        field_74: data.patientId ? [data.patientId] : [],
-        field_77: data.providerId ? [data.providerId] : [],
+      // Format date for Knack (MM/DD/YYYY format)
+      const dateParts = data.date.split("-");
+      const formattedDate = dateParts.length === 3 
+        ? `${dateParts[1]}/${dateParts[2]}/${dateParts[0]}` 
+        : data.date;
+      
+      const payload: Record<string, unknown> = {
+        field_17: formattedDate,
+        field_18: data.status,
+        field_20: data.reason,
+        field_70: data.patientId ? [data.patientId] : [],
+        field_71: data.providerId ? [data.providerId] : [],
       };
+      if (data.time) {
+        payload.field_19 = data.time;
+      }
       if (data.referringPhysician) {
-        payload.field_8 = data.referringPhysician;
+        payload.field_99 = data.referringPhysician;
       }
       return apiRequest("POST", "/api/appointments", payload);
     },
@@ -87,10 +95,10 @@ export default function AppointmentNew() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.patientId || !formData.date || !formData.time) {
+    if (!formData.patientId || !formData.date) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields",
+        description: "Please select a patient and date",
         variant: "destructive",
       });
       return;
@@ -200,15 +208,21 @@ export default function AppointmentNew() {
               <div className="space-y-2">
                 <Label htmlFor="time" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Time *
+                  Preferred Time
                 </Label>
-                <Input
-                  id="time"
-                  type="time"
+                <Select
                   value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  data-testid="input-time"
-                />
+                  onValueChange={(value) => setFormData({ ...formData, time: value })}
+                >
+                  <SelectTrigger data-testid="select-time">
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Morning">Morning</SelectItem>
+                    <SelectItem value="Afternoon">Afternoon</SelectItem>
+                    <SelectItem value="Evening">Evening</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -236,26 +250,26 @@ export default function AppointmentNew() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Scheduled">Scheduled</SelectItem>
                   <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Confirmed">Confirmed</SelectItem>
-                  <SelectItem value="Requested">Requested</SelectItem>
+                  <SelectItem value="Approved">Approved</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Denied">Denied</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes" className="flex items-center gap-2">
+              <Label htmlFor="reason" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
-                Notes
+                Reason for Visit
               </Label>
               <Textarea
-                id="notes"
-                placeholder="Add any notes about this appointment..."
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                id="reason"
+                placeholder="Describe the reason for this appointment..."
+                value={formData.reason}
+                onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                 rows={4}
-                data-testid="input-notes"
+                data-testid="input-reason"
               />
             </div>
 
