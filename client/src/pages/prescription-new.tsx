@@ -18,7 +18,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Account, KnackRecordsResponse } from "@shared/schema";
+import type { KnackRecordsResponse } from "@shared/schema";
+
+interface Patient {
+  id: string;
+  field_6: string;
+  field_6_raw?: { first?: string; last?: string; full?: string };
+  field_7_raw?: { email: string };
+}
 
 export default function PrescriptionNew() {
   const [, navigate] = useLocation();
@@ -34,12 +41,11 @@ export default function PrescriptionNew() {
     status: "Active",
   });
 
-  const { data: accountsData } = useQuery<KnackRecordsResponse<Account>>({
+  const { data: patientsData } = useQuery<KnackRecordsResponse<Patient>>({
     queryKey: ["/api/patients"],
   });
 
-  const accounts = accountsData?.records || [];
-  const patients = accounts.filter(a => a.profile_keys !== "Staff");
+  const patients = patientsData?.records || [];
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -84,12 +90,12 @@ export default function PrescriptionNew() {
     createMutation.mutate(formData);
   };
 
-  const getAccountName = (account: Account): string => {
-    if (account.field_11_raw?.full) return account.field_11_raw.full;
-    if (account.field_11_raw) {
-      return `${account.field_11_raw.first || ""} ${account.field_11_raw.last || ""}`.trim();
+  const getPatientName = (patient: Patient): string => {
+    if (patient.field_6_raw?.full) return patient.field_6_raw.full;
+    if (patient.field_6_raw) {
+      return `${patient.field_6_raw.first || ""} ${patient.field_6_raw.last || ""}`.trim();
     }
-    return account.field_11 || "Unknown";
+    return patient.field_6 || "Unknown";
   };
 
   return (
@@ -145,7 +151,7 @@ export default function PrescriptionNew() {
                 <SelectContent>
                   {patients.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id}>
-                      {getAccountName(patient)}
+                      {getPatientName(patient)}
                     </SelectItem>
                   ))}
                 </SelectContent>

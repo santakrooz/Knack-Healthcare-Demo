@@ -23,7 +23,9 @@ export const KNACK_APP_ID = "696ac7e9d09e7f3ff5b8cfa6";
 
 // Knack Object Keys - Updated based on actual Knack structure
 export const KNACK_OBJECTS = {
-  ACCOUNTS: "object_3",          // Contains both Staff and Patients
+  PATIENTS: "object_2",          // Patients table
+  STAFF: "object_3",             // Staff/Accounts table
+  ACCOUNTS: "object_3",          // Alias for Staff (legacy)
   NEW_PATIENT_FORMS: "object_4", // Patient intake forms (empty)
   DIAGNOSES: "object_5",         // Diagnoses
   PRESCRIPTIONS: "object_6",     // Prescriptions

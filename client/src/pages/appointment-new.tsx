@@ -20,6 +20,14 @@ import { PageHeader } from "@/components/page-header";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Account, KnackRecordsResponse } from "@shared/schema";
 
+interface Patient {
+  id: string;
+  field_6: string;
+  field_6_raw?: { first?: string; last?: string; full?: string };
+  field_7_raw?: { email: string };
+  profile_keys?: string;
+}
+
 export default function AppointmentNew() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -33,13 +41,16 @@ export default function AppointmentNew() {
     notes: "",
   });
 
-  const { data: accountsData } = useQuery<KnackRecordsResponse<Account>>({
+  const { data: patientsData } = useQuery<KnackRecordsResponse<Patient>>({
     queryKey: ["/api/patients"],
   });
 
-  const accounts = accountsData?.records || [];
-  const patients = accounts.filter(a => a.profile_keys !== "Staff");
-  const providers = accounts.filter(a => a.profile_keys === "Staff");
+  const { data: staffData } = useQuery<KnackRecordsResponse<Account>>({
+    queryKey: ["/api/staff"],
+  });
+
+  const patients = patientsData?.records || [];
+  const providers = staffData?.records || [];
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -83,7 +94,15 @@ export default function AppointmentNew() {
     createMutation.mutate(formData);
   };
 
-  const getAccountName = (account: Account): string => {
+  const getPatientName = (patient: Patient): string => {
+    if (patient.field_6_raw?.full) return patient.field_6_raw.full;
+    if (patient.field_6_raw) {
+      return `${patient.field_6_raw.first || ""} ${patient.field_6_raw.last || ""}`.trim();
+    }
+    return patient.field_6 || "Unknown";
+  };
+
+  const getStaffName = (account: Account): string => {
     if (account.field_11_raw?.full) return account.field_11_raw.full;
     if (account.field_11_raw) {
       return `${account.field_11_raw.first || ""} ${account.field_11_raw.last || ""}`.trim();
@@ -130,7 +149,7 @@ export default function AppointmentNew() {
                 <SelectContent>
                   {patients.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id}>
-                      {getAccountName(patient)}
+                      {getPatientName(patient)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -152,7 +171,7 @@ export default function AppointmentNew() {
                 <SelectContent>
                   {providers.map((provider) => (
                     <SelectItem key={provider.id} value={provider.id}>
-                      {getAccountName(provider)} - {provider.field_66_raw?.[0] || "Staff"}
+                      {getStaffName(provider)} - {provider.field_66_raw?.[0] || "Staff"}
                     </SelectItem>
                   ))}
                 </SelectContent>

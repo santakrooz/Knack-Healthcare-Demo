@@ -33,7 +33,21 @@ The server acts as a proxy layer between the React frontend and the Knack API, h
 ### Data Layer
 - **Primary Storage**: Knack (Backend-as-a-Service) accessed via REST API
 - **Database Schema**: Drizzle ORM with PostgreSQL configuration (for user authentication/session storage)
-- **Knack Objects**: Accounts, New Patient Forms, Diagnoses, Insurance Companies, Prescriptions, Appointments
+
+#### Knack Objects Mapping
+| Object ID | Name | Key Fields |
+|-----------|------|------------|
+| object_2 | Patients | field_6 (name), field_7 (email), field_44 (phone), field_9 (status) |
+| object_3 | Staff/Accounts | field_11 (name), field_12 (email), field_66 (role), field_72 (specialty) |
+| object_4 | New Patient Forms | (intake forms) |
+| object_5 | Diagnoses | field_16-23 (diagnosis data) |
+| object_6 | Prescriptions | field_24-28 (prescription data) |
+| object_7 | Appointments | field_29-31 (appointment data) |
+| object_8 | Insurance Companies | field_32-36 (insurance data) |
+
+**Important**: Patients (object_2) and Staff (object_3) are separate tables with different field structures:
+- Patient names use `field_6` / `field_6_raw`
+- Staff names use `field_11` / `field_11_raw`
 
 The schema in `shared/schema.ts` defines TypeScript types for Knack data structures and maintains a local users table for potential authentication needs.
 

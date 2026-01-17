@@ -50,7 +50,7 @@ export async function registerRoutes(
     try {
       // Fetch counts from all objects in parallel
       const [patientsRes, appointmentsRes, prescriptionsRes] = await Promise.all([
-        knackRequest(`/objects/${KNACK_OBJECTS.ACCOUNTS}/records?rows_per_page=1`),
+        knackRequest(`/objects/${KNACK_OBJECTS.PATIENTS}/records?rows_per_page=1`),
         knackRequest(`/objects/${KNACK_OBJECTS.APPOINTMENTS}/records?rows_per_page=1`),
         knackRequest(`/objects/${KNACK_OBJECTS.PRESCRIPTIONS}/records?rows_per_page=1`),
       ]);
@@ -89,11 +89,11 @@ export async function registerRoutes(
     }
   });
 
-  // Patients endpoints (using Accounts object - object_3)
+  // Patients endpoints (using Patients object - object_2)
   app.get("/api/patients", async (_req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records?rows_per_page=100`
+        `/objects/${KNACK_OBJECTS.PATIENTS}/records?rows_per_page=100`
       );
       return handleKnackResponse(response, res);
     } catch (error) {
@@ -105,7 +105,7 @@ export async function registerRoutes(
   app.get("/api/patients/recent", async (_req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records?rows_per_page=5&sort_field=field_88&sort_order=desc`
+        `/objects/${KNACK_OBJECTS.PATIENTS}/records?rows_per_page=5&sort_order=desc`
       );
       const data = await response.json() as any;
       res.json(data.records || []);
@@ -118,7 +118,7 @@ export async function registerRoutes(
   app.get("/api/patients/:id", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records/${req.params.id}`
+        `/objects/${KNACK_OBJECTS.PATIENTS}/records/${req.params.id}`
       );
       return handleKnackResponse(response, res);
     } catch (error) {
@@ -130,7 +130,7 @@ export async function registerRoutes(
   app.post("/api/patients", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records`,
+        `/objects/${KNACK_OBJECTS.PATIENTS}/records`,
         "POST",
         req.body
       );
@@ -144,7 +144,7 @@ export async function registerRoutes(
   app.put("/api/patients/:id", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records/${req.params.id}`,
+        `/objects/${KNACK_OBJECTS.PATIENTS}/records/${req.params.id}`,
         "PUT",
         req.body
       );
@@ -158,7 +158,7 @@ export async function registerRoutes(
   app.delete("/api/patients/:id", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records/${req.params.id}`,
+        `/objects/${KNACK_OBJECTS.PATIENTS}/records/${req.params.id}`,
         "DELETE"
       );
       if (response.ok) {
@@ -170,6 +170,19 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Patient delete error:", error);
       res.status(500).json({ error: "Failed to delete patient" });
+    }
+  });
+
+  // Staff endpoints (using Staff/Accounts object - object_3)
+  app.get("/api/staff", async (_req: Request, res: ExpressResponse) => {
+    try {
+      const response = await knackRequest(
+        `/objects/${KNACK_OBJECTS.STAFF}/records?rows_per_page=100`
+      );
+      return handleKnackResponse(response, res);
+    } catch (error) {
+      console.error("Staff fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch staff" });
     }
   });
 
