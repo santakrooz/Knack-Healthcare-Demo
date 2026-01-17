@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Pill,
   Plus,
@@ -49,6 +49,7 @@ import { getPatientName, formatKnackDate } from "@shared/schema";
 export default function Prescriptions() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [, navigate] = useLocation();
 
   const { data: prescriptionsData, isLoading } = useQuery<KnackRecordsResponse<Prescription>>({
     queryKey: ["/api/prescriptions"],
@@ -160,8 +161,9 @@ export default function Prescriptions() {
                 {filteredPrescriptions.map((prescription) => (
                   <TableRow
                     key={prescription.id}
-                    className="hover-elevate"
+                    className="hover-elevate cursor-pointer"
                     data-testid={`prescription-row-${prescription.id}`}
+                    onClick={() => navigate(`/prescriptions/${prescription.id}`)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">

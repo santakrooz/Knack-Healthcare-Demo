@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
@@ -99,6 +99,7 @@ export default function Patients() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const { toast } = useToast();
+  const [, navigate] = useLocation();
 
   const { data: patientsData, isLoading } = useQuery<KnackRecordsResponse<Patient>>({
     queryKey: ["/api/patients"],
@@ -230,8 +231,9 @@ export default function Patients() {
                 {filteredPatients.map((patient) => (
                   <TableRow
                     key={patient.id}
-                    className="hover-elevate"
+                    className="hover-elevate cursor-pointer"
                     data-testid={`patient-row-${patient.id}`}
+                    onClick={() => navigate(`/patients/${patient.id}`)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">

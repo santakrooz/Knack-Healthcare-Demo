@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   Calendar,
   Plus,
@@ -48,6 +48,7 @@ import { getPatientName, getProviderName, formatKnackDate, formatKnackTime } fro
 export default function Appointments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [, navigate] = useLocation();
 
   const { data: appointmentsData, isLoading } = useQuery<KnackRecordsResponse<Appointment>>({
     queryKey: ["/api/appointments"],
@@ -160,8 +161,9 @@ export default function Appointments() {
                 {filteredAppointments.map((appointment) => (
                   <TableRow
                     key={appointment.id}
-                    className="hover-elevate"
+                    className="hover-elevate cursor-pointer"
                     data-testid={`appointment-row-${appointment.id}`}
+                    onClick={() => navigate(`/appointments/${appointment.id}`)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
