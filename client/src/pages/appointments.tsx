@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { format, isToday, isTomorrow, parseISO } from "date-fns";
 import {
   Calendar,
   Plus,
@@ -13,8 +12,10 @@ import {
   Edit,
   Trash2,
   Filter,
+  UserCheck,
+  Pill,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -43,6 +44,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { DataTableSkeleton } from "@/components/data-table-skeleton";
 import type { Appointment, KnackRecordsResponse } from "@shared/schema";
+import { getPatientName, getProviderName, formatKnackDate, formatKnackTime } from "@shared/schema";
 
 export default function Appointments() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,35 +58,17 @@ export default function Appointments() {
 
   const filteredAppointments = appointments?.filter((appointment) => {
     const searchLower = searchQuery.toLowerCase();
+    const patientName = getPatientName(appointment.field_74_raw).toLowerCase();
+    const providerName = getProviderName(appointment.field_77_raw).toLowerCase();
     const matchesSearch =
-      (appointment.field_41 || "").toLowerCase().includes(searchLower) ||
-      (appointment.field_42 || "").toLowerCase().includes(searchLower) ||
-      (appointment.field_44 || "").toLowerCase().includes(searchLower);
+      patientName.includes(searchLower) ||
+      providerName.includes(searchLower) ||
+      (appointment.field_32 || "").toLowerCase().includes(searchLower);
     const matchesStatus =
       statusFilter === "all" ||
-      (appointment.field_43 || "").toLowerCase() === statusFilter.toLowerCase();
+      (appointment.field_30 || "").toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
-
-  const getDateLabel = (dateStr: string | undefined) => {
-    if (!dateStr) return "Date TBD";
-    try {
-      const date = parseISO(dateStr);
-      if (isToday(date)) return "Today";
-      if (isTomorrow(date)) return "Tomorrow";
-      return format(date, "MMM d, yyyy");
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const getTimeLabel = (appointment: Appointment) => {
-    if (appointment.field_40_raw) {
-      const { hours, minutes, am_pm } = appointment.field_40_raw;
-      return `${hours}:${minutes} ${am_pm}`;
-    }
-    return "Time TBD";
-  };
 
   return (
     <div className="p-6 lg:p-8">
@@ -121,10 +105,11 @@ export default function Appointments() {
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="requested">Requested</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="no-show">No Show</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -166,9 +151,8 @@ export default function Appointments() {
                 <TableRow>
                   <TableHead className="w-[200px]">Date & Time</TableHead>
                   <TableHead>Patient</TableHead>
-                  <TableHead>Type</TableHead>
                   <TableHead>Provider</TableHead>
-                  <TableHead>Duration</TableHead>
+                  <TableHead>Prescription</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -187,11 +171,11 @@ export default function Appointments() {
                         </div>
                         <div>
                           <p className="font-medium">
-                            {getDateLabel(appointment.field_40_raw?.date)}
+                            {formatKnackDate(appointment.field_29_raw)}
                           </p>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <Clock className="h-3 w-3" />
-                            <span>{getTimeLabel(appointment)}</span>
+                            <span>{formatKnackTime(appointment.field_29_raw) || "TBD"}</span>
                           </div>
                         </div>
                       </div>
@@ -199,24 +183,29 @@ export default function Appointments() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span>{appointment.field_41 || "Unassigned"}</span>
+                        <span>{getPatientName(appointment.field_74_raw)}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
-                        {appointment.field_42 || "Consultation"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                        <span>{getProviderName(appointment.field_77_raw)}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {appointment.field_44 || "Not assigned"}
+                      {appointment.field_78_raw && appointment.field_78_raw.length > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <Pill className="h-4 w-4 text-purple-500" />
+                          <span className="truncate max-w-[150px]">
+                            {appointment.field_78_raw[0].identifier}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">None</span>
+                      )}
                     </TableCell>
                     <TableCell>
-                      {appointment.field_46
-                        ? `${appointment.field_46} min`
-                        : "30 min"}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={appointment.field_43 || "scheduled"} />
+                      <StatusBadge status={appointment.field_30 || "pending"} />
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import {
   Users,
   Calendar,
@@ -12,19 +11,50 @@ import {
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatsCard } from "@/components/stats-card";
 import { StatusBadge } from "@/components/status-badge";
 import { DashboardSkeleton } from "@/components/data-table-skeleton";
 import { PageHeader } from "@/components/page-header";
-import type { DashboardStats, NewPatientForm, Appointment, KnackRecordsResponse } from "@shared/schema";
+import type { DashboardStats, Account, Appointment } from "@shared/schema";
+import { getPatientName, formatKnackTime } from "@shared/schema";
+
+// Helper functions for Account
+function getAccountName(account: Account): string {
+  if (account.field_11_raw?.full) {
+    return account.field_11_raw.full;
+  }
+  if (account.field_11_raw) {
+    return `${account.field_11_raw.first || ""} ${account.field_11_raw.last || ""}`.trim();
+  }
+  return account.field_11 || "Unknown";
+}
+
+function getAccountInitials(account: Account): string {
+  if (account.field_11_raw) {
+    const first = account.field_11_raw.first?.[0] || "";
+    const last = account.field_11_raw.last?.[0] || "";
+    return `${first}${last}`.toUpperCase();
+  }
+  const name = account.field_11 || "";
+  const parts = name.split(" ");
+  return parts.map(p => p[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function getAccountEmail(account: Account): string {
+  return account.field_12_raw?.email || "";
+}
+
+function getProfileImage(account: Account): string | undefined {
+  return account.field_64_raw?.url || account.field_64_raw?.thumb_url;
+}
 
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
   });
 
-  const { data: recentPatients, isLoading: patientsLoading } = useQuery<NewPatientForm[]>({
+  const { data: recentPatients, isLoading: patientsLoading } = useQuery<Account[]>({
     queryKey: ["/api/patients/recent"],
   });
 
@@ -129,16 +159,13 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {appointment.field_41 || "Patient"}
+                        {getPatientName(appointment.field_74_raw)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {appointment.field_42 || "Consultation"} •{" "}
-                        {appointment.field_40_raw
-                          ? `${appointment.field_40_raw.hours}:${appointment.field_40_raw.minutes} ${appointment.field_40_raw.am_pm}`
-                          : "Time TBD"}
+                        {formatKnackTime(appointment.field_29_raw) || "Time TBD"}
                       </p>
                     </div>
-                    <StatusBadge status={appointment.field_43 || "scheduled"} />
+                    <StatusBadge status={appointment.field_30 || "pending"} />
                   </div>
                 ))}
               </div>
@@ -178,20 +205,20 @@ export default function Dashboard() {
                     data-testid={`patient-item-${patient.id}`}
                   >
                     <Avatar className="h-12 w-12">
+                      <AvatarImage src={getProfileImage(patient)} alt={getAccountName(patient)} />
                       <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {patient.field_6?.[0]}
-                        {patient.field_7?.[0]}
+                        {getAccountInitials(patient)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {patient.field_6} {patient.field_7}
+                        {getAccountName(patient)}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {patient.field_11 || "No email"}
+                      <p className="text-sm text-muted-foreground truncate">
+                        {getAccountEmail(patient) || "No email"}
                       </p>
                     </div>
-                    <StatusBadge status={patient.field_13 || "active"} />
+                    <StatusBadge status={patient.field_14 || "active"} />
                   </div>
                 ))}
               </div>

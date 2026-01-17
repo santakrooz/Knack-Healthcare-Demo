@@ -21,14 +21,14 @@ export type User = typeof users.$inferSelect;
 // Knack Application ID
 export const KNACK_APP_ID = "696ac7e9d09e7f3ff5b8cfa6";
 
-// Knack Object Keys
+// Knack Object Keys - Updated based on actual Knack structure
 export const KNACK_OBJECTS = {
-  ACCOUNTS: "object_1",
-  NEW_PATIENT_FORMS: "object_2",
-  DIAGNOSES: "object_3",
-  INSURANCE_COMPANIES: "object_5",
-  PRESCRIPTIONS: "object_6",
-  APPOINTMENTS: "object_7",
+  ACCOUNTS: "object_3",          // Contains both Staff and Patients
+  NEW_PATIENT_FORMS: "object_4", // Patient intake forms (empty)
+  DIAGNOSES: "object_5",         // Diagnoses
+  PRESCRIPTIONS: "object_6",     // Prescriptions
+  APPOINTMENTS: "object_7",      // Appointments
+  INSURANCE_COMPANIES: "object_8", // Insurance companies
 } as const;
 
 // Name field type from Knack
@@ -37,6 +37,7 @@ export interface KnackNameField {
   last: string;
   middle?: string;
   title?: string;
+  full?: string;
 }
 
 // Address field type from Knack
@@ -57,116 +58,203 @@ export interface KnackPhoneField {
   area?: string;
 }
 
-// Account (User) type - object_1
+// Email field type from Knack
+export interface KnackEmailField {
+  email: string;
+  label?: string;
+}
+
+// Date field type from Knack
+export interface KnackDateField {
+  date: string;
+  date_formatted: string;
+  hours?: string;
+  minutes?: string;
+  am_pm?: string;
+  unix_timestamp?: number;
+  iso_timestamp?: string;
+  timestamp?: string;
+  time?: number;
+  time_formatted?: string;
+}
+
+// Connection field type from Knack
+export interface KnackConnectionField {
+  id: string;
+  identifier: string;
+}
+
+// Account/User type - object_3 (includes both Staff and Patients)
 export interface Account {
   id: string;
-  field_1: KnackNameField; // Name
-  field_1_raw: KnackNameField;
-  field_2: string; // Email
-  field_2_raw: { email: string };
-  field_4: string; // User Status (active, inactive, pending approval)
-  field_4_raw: string;
-  field_5: string[]; // User Roles
-  field_5_raw: string[];
+  account_status?: string;
+  approval_status?: string;
+  profile_keys?: string;
+  profile_keys_raw?: KnackConnectionField[];
+  
+  // Name - field_11
+  field_11: string;
+  field_11_raw: KnackNameField;
+  
+  // Email - field_12
+  field_12: string;
+  field_12_raw: KnackEmailField;
+  
+  // Password - field_13
+  field_13?: string;
+  
+  // User Status - field_14 (active, pending approval, etc.)
+  field_14: string;
+  field_14_raw: string;
+  
+  // Profile/Role - field_15
+  field_15?: string;
+  field_15_raw?: string[];
+  
+  // Profile Image - field_64
+  field_64?: string;
+  field_64_raw?: {
+    url: string;
+    thumb_url?: string;
+    filename?: string;
+  };
+  
+  // Role - field_66 (Physician, Medical Assistant, etc.)
+  field_66?: string;
+  field_66_raw?: string[];
+  
+  // Phone - field_67
+  field_67?: string;
+  field_67_raw?: KnackPhoneField;
+  
+  // Specialty - field_72
+  field_72?: string;
+  field_72_raw?: string[];
+  
+  // Full description - field_73
+  field_73?: string;
+  field_73_raw?: string;
 }
 
-// New Patient Form type - object_2
-export interface NewPatientForm {
+// Prescription type - object_6 (Actual field mappings from API)
+export interface Prescription {
   id: string;
-  field_6: string; // First Name
-  field_6_raw: string;
-  field_7: string; // Last Name
-  field_7_raw: string;
-  field_8: string; // Date of Birth
-  field_8_raw: { date: string; date_formatted: string };
-  field_9: string; // Sex (Male/Female)
-  field_9_raw: string;
-  field_10: string; // Phone
-  field_10_raw: KnackPhoneField;
-  field_11: string; // Email
-  field_11_raw: { email: string };
-  field_12: string; // Address
-  field_12_raw: KnackAddressField;
-  field_13: string; // Status
-  field_13_raw: string;
-  field_14?: string; // Emergency Contact Name
-  field_14_raw?: KnackNameField;
-  field_15?: string; // Emergency Contact Phone
-  field_15_raw?: KnackPhoneField;
-  field_16?: string; // Insurance Company
-  field_16_raw?: { id: string; identifier: string }[];
-  field_17?: string; // Policy Number
-  field_17_raw?: string;
+  
+  // Medication & Dosage - field_80
+  field_80: string;
+  field_80_raw: string;
+  
+  // Instructions - field_24
+  field_24: string;
+  field_24_raw: string;
+  
+  // Issue Date - field_25
+  field_25: string;
+  field_25_raw: KnackDateField;
+  
+  // Refill Expiration Date - field_26
+  field_26: string;
+  field_26_raw: KnackDateField;
+  
+  // Number of Refills - field_27
+  field_27: number;
+  field_27_raw: number;
+  
+  // Status - field_28 (Active, Inactive, etc.)
+  field_28: string;
+  field_28_raw: string;
+  
+  // Patient connection - field_75
+  field_75?: string;
+  field_75_raw?: KnackConnectionField[];
+  
+  // Provider connection - field_76
+  field_76?: string;
+  field_76_raw?: KnackConnectionField[];
 }
 
-// Diagnosis type - object_3
+// Appointment type - object_7 (Actual field mappings from API)
+export interface Appointment {
+  id: string;
+  
+  // Appointment Date/Time - field_29
+  field_29: string;
+  field_29_raw: KnackDateField;
+  
+  // Status - field_30 (Pending, Scheduled, Requested, etc.)
+  field_30: string;
+  field_30_raw: string;
+  
+  // Notes - field_31
+  field_31?: string;
+  field_31_raw?: string;
+  
+  // Reason/Type - field_32
+  field_32?: string;
+  field_32_raw?: string;
+  
+  // Created Date - field_33
+  field_33?: string;
+  field_33_raw?: KnackDateField;
+  
+  // Updated Date - field_34
+  field_34?: string;
+  field_34_raw?: KnackDateField;
+  
+  // Patient connection - field_74
+  field_74?: string;
+  field_74_raw?: KnackConnectionField[];
+  
+  // Provider connection - field_77
+  field_77?: string;
+  field_77_raw?: KnackConnectionField[];
+  
+  // Prescription connection - field_78
+  field_78?: string;
+  field_78_raw?: KnackConnectionField[];
+}
+
+// Diagnosis type - object_5
 export interface Diagnosis {
   id: string;
-  field_18: string; // Diagnosis Name
-  field_18_raw: string;
-  field_19: string; // Diagnosis Date
-  field_19_raw: { date: string; date_formatted: string };
-  field_20: string; // Notes
-  field_20_raw: string;
-  field_21?: string; // Patient connection
-  field_21_raw?: { id: string; identifier: string }[];
-  field_22?: string; // Status (Active, Resolved, Chronic)
+  field_18?: string;
+  field_18_raw?: string;
+  field_19?: string;
+  field_19_raw?: KnackDateField;
+  field_20?: string;
+  field_20_raw?: string;
+  field_21?: string;
+  field_21_raw?: KnackConnectionField[];
+  field_22?: string;
   field_22_raw?: string;
 }
 
-// Insurance Company type - object_5
+// Insurance Company type - object_8
 export interface InsuranceCompany {
   id: string;
-  field_27: string; // Company Name
-  field_27_raw: string;
-  field_28: string; // Phone
-  field_28_raw: KnackPhoneField;
-  field_29?: string; // Website
-  field_29_raw?: { url: string };
-  field_30?: string; // Address
-  field_30_raw?: KnackAddressField;
+  field_35?: string;
+  field_35_raw?: string;
+  field_36?: string;
+  field_36_raw?: KnackPhoneField;
+  field_37?: string;
+  field_37_raw?: { url: string };
+  field_38?: string;
+  field_38_raw?: KnackAddressField;
 }
 
-// Prescription type - object_6
-export interface Prescription {
+// New Patient Form type - object_4
+export interface NewPatientForm {
   id: string;
-  field_31: string; // Medication Name
-  field_31_raw: string;
-  field_32: string; // Dosage
-  field_32_raw: string;
-  field_33: string; // Frequency
-  field_33_raw: string;
-  field_34: string; // Start Date
-  field_34_raw: { date: string; date_formatted: string };
-  field_35?: string; // End Date
-  field_35_raw?: { date: string; date_formatted: string };
-  field_36?: string; // Prescribing Doctor
-  field_36_raw?: string;
-  field_37?: string; // Patient connection
-  field_37_raw?: { id: string; identifier: string }[];
-  field_38?: string; // Status (Active, Completed, Discontinued)
-  field_38_raw?: string;
-  field_39?: string; // Notes
-  field_39_raw?: string;
-}
-
-// Appointment type - object_7
-export interface Appointment {
-  id: string;
-  field_40: string; // Appointment Date/Time
-  field_40_raw: { date: string; date_formatted: string; hours: string; minutes: string; am_pm: string };
-  field_41: string; // Patient connection
-  field_41_raw: { id: string; identifier: string }[];
-  field_42: string; // Appointment Type (Consultation, Follow-up, Check-up, Emergency)
-  field_42_raw: string;
-  field_43: string; // Status (Scheduled, Confirmed, Completed, Cancelled, No-show)
-  field_43_raw: string;
-  field_44?: string; // Doctor/Provider
-  field_44_raw?: string;
-  field_45?: string; // Notes
-  field_45_raw?: string;
-  field_46?: string; // Duration (minutes)
-  field_46_raw?: number;
+  field_6?: string;
+  field_6_raw?: string;
+  field_7?: string;
+  field_7_raw?: string;
+  field_8?: string;
+  field_8_raw?: KnackDateField;
+  field_9?: string;
+  field_9_raw?: string;
+  field_10?: string;
+  field_10_raw?: KnackPhoneField;
 }
 
 // API Response types
@@ -189,38 +277,60 @@ export interface DashboardStats {
   pendingForms: number;
 }
 
+// Helper function to extract patient name from connection
+export function getPatientName(connectionRaw?: KnackConnectionField[]): string {
+  if (!connectionRaw || connectionRaw.length === 0) return "Unassigned";
+  return connectionRaw[0].identifier;
+}
+
+// Helper function to extract provider name from connection
+export function getProviderName(connectionRaw?: KnackConnectionField[]): string {
+  if (!connectionRaw || connectionRaw.length === 0) return "Not assigned";
+  return connectionRaw[0].identifier;
+}
+
+// Helper function to format Knack date
+export function formatKnackDate(dateField?: KnackDateField): string {
+  if (!dateField) return "N/A";
+  return dateField.date_formatted || dateField.date || "N/A";
+}
+
+// Helper function to format Knack time
+export function formatKnackTime(dateField?: KnackDateField): string {
+  if (!dateField) return "";
+  if (dateField.time_formatted) return dateField.time_formatted;
+  if (dateField.hours && dateField.minutes && dateField.am_pm) {
+    return `${dateField.hours}:${dateField.minutes} ${dateField.am_pm}`;
+  }
+  return "";
+}
+
 // Insert schemas for creating new records
 export const insertPatientFormSchema = z.object({
-  field_6: z.string().min(1, "First name is required"),
-  field_7: z.string().min(1, "Last name is required"),
-  field_8: z.string().min(1, "Date of birth is required"),
-  field_9: z.string().min(1, "Sex is required"),
-  field_10: z.string().optional(),
-  field_11: z.string().email("Valid email is required"),
-  field_12: z.string().optional(),
-  field_13: z.string().default("pending"),
+  field_11: z.object({
+    first: z.string().min(1, "First name is required"),
+    last: z.string().min(1, "Last name is required"),
+  }),
+  field_12: z.string().email("Valid email is required"),
+  field_14: z.string().default("active"),
 });
 
 export const insertAppointmentSchema = z.object({
-  field_40: z.string().min(1, "Appointment date/time is required"),
-  field_41: z.array(z.string()).min(1, "Patient is required"),
-  field_42: z.string().min(1, "Appointment type is required"),
-  field_43: z.string().default("Scheduled"),
-  field_44: z.string().optional(),
-  field_45: z.string().optional(),
-  field_46: z.number().optional(),
+  field_29: z.string().min(1, "Appointment date/time is required"),
+  field_74: z.array(z.string()).min(1, "Patient is required"),
+  field_30: z.string().default("Scheduled"),
+  field_31: z.string().optional(),
+  field_77: z.array(z.string()).optional(),
 });
 
 export const insertPrescriptionSchema = z.object({
-  field_31: z.string().min(1, "Medication name is required"),
-  field_32: z.string().min(1, "Dosage is required"),
-  field_33: z.string().min(1, "Frequency is required"),
-  field_34: z.string().min(1, "Start date is required"),
-  field_35: z.string().optional(),
-  field_36: z.string().optional(),
-  field_37: z.array(z.string()).optional(),
-  field_38: z.string().default("Active"),
-  field_39: z.string().optional(),
+  field_80: z.string().min(1, "Medication & dosage is required"),
+  field_24: z.string().min(1, "Instructions are required"),
+  field_25: z.string().min(1, "Issue date is required"),
+  field_26: z.string().optional(),
+  field_27: z.number().optional(),
+  field_28: z.string().default("Active"),
+  field_75: z.array(z.string()).optional(),
 });
 
 export const insertDiagnosisSchema = z.object({

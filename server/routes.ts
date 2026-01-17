@@ -50,7 +50,7 @@ export async function registerRoutes(
     try {
       // Fetch counts from all objects in parallel
       const [patientsRes, appointmentsRes, prescriptionsRes] = await Promise.all([
-        knackRequest(`/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records?rows_per_page=1`),
+        knackRequest(`/objects/${KNACK_OBJECTS.ACCOUNTS}/records?rows_per_page=1`),
         knackRequest(`/objects/${KNACK_OBJECTS.APPOINTMENTS}/records?rows_per_page=1`),
         knackRequest(`/objects/${KNACK_OBJECTS.PRESCRIPTIONS}/records?rows_per_page=1`),
       ]);
@@ -61,39 +61,25 @@ export async function registerRoutes(
         prescriptionsRes.json(),
       ]) as [any, any, any];
 
-      // Get today's date for filtering
-      const today = new Date().toISOString().split("T")[0];
-      
-      // Filter appointments for today (simplified - in production would use Knack filters)
-      let todayCount = 0;
-      let pendingCount = 0;
+      // Count active prescriptions
       let activeRxCount = 0;
-
-      // Count today's appointments and pending forms from the data
-      if (appointmentsData.records) {
-        todayCount = appointmentsData.records.filter((apt: any) => {
-          if (apt.field_40_raw?.date) {
-            return apt.field_40_raw.date.startsWith(today);
-          }
-          return false;
-        }).length;
-      }
-
-      if (patientsData.records) {
-        pendingCount = patientsData.records.filter(
-          (p: any) => p.field_13_raw === "pending"
+      if (prescriptionsData.records) {
+        activeRxCount = prescriptionsData.records.filter(
+          (rx: any) => rx.field_28_raw === "Active" || rx.field_28_raw === "active"
         ).length;
       }
 
-      if (prescriptionsData.records) {
-        activeRxCount = prescriptionsData.records.filter(
-          (rx: any) => rx.field_38_raw === "Active" || rx.field_38_raw === "active"
+      // Count pending appointments
+      let pendingCount = 0;
+      if (appointmentsData.records) {
+        pendingCount = appointmentsData.records.filter(
+          (apt: any) => apt.field_30_raw === "Pending" || apt.field_30_raw === "pending"
         ).length;
       }
 
       res.json({
         totalPatients: patientsData.total_records || 0,
-        todayAppointments: appointmentsData.total_records || todayCount,
+        todayAppointments: appointmentsData.total_records || 0,
         activePrescriptions: prescriptionsData.total_records || activeRxCount,
         pendingForms: pendingCount,
       });
@@ -103,11 +89,11 @@ export async function registerRoutes(
     }
   });
 
-  // Patients endpoints
+  // Patients endpoints (using Accounts object - object_3)
   app.get("/api/patients", async (_req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records?rows_per_page=100`
+        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records?rows_per_page=100`
       );
       return handleKnackResponse(response, res);
     } catch (error) {
@@ -119,7 +105,7 @@ export async function registerRoutes(
   app.get("/api/patients/recent", async (_req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records?rows_per_page=5&sort_field=field_8&sort_order=desc`
+        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records?rows_per_page=5&sort_field=field_88&sort_order=desc`
       );
       const data = await response.json() as any;
       res.json(data.records || []);
@@ -132,7 +118,7 @@ export async function registerRoutes(
   app.get("/api/patients/:id", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records/${req.params.id}`
+        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records/${req.params.id}`
       );
       return handleKnackResponse(response, res);
     } catch (error) {
@@ -144,7 +130,7 @@ export async function registerRoutes(
   app.post("/api/patients", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records`,
+        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records`,
         "POST",
         req.body
       );
@@ -158,7 +144,7 @@ export async function registerRoutes(
   app.put("/api/patients/:id", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records/${req.params.id}`,
+        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records/${req.params.id}`,
         "PUT",
         req.body
       );
@@ -172,7 +158,7 @@ export async function registerRoutes(
   app.delete("/api/patients/:id", async (req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.NEW_PATIENT_FORMS}/records/${req.params.id}`,
+        `/objects/${KNACK_OBJECTS.ACCOUNTS}/records/${req.params.id}`,
         "DELETE"
       );
       if (response.ok) {
@@ -203,17 +189,17 @@ export async function registerRoutes(
   app.get("/api/appointments/today", async (_req: Request, res: ExpressResponse) => {
     try {
       const response = await knackRequest(
-        `/objects/${KNACK_OBJECTS.APPOINTMENTS}/records?rows_per_page=20&sort_field=field_40&sort_order=asc`
+        `/objects/${KNACK_OBJECTS.APPOINTMENTS}/records?rows_per_page=20&sort_field=field_29&sort_order=asc`
       );
       const data = await response.json() as any;
       
-      // Filter for today's appointments (simplified)
+      // Filter for today's appointments
       const today = new Date().toISOString().split("T")[0];
       const todayAppointments = (data.records || []).filter((apt: any) => {
-        if (apt.field_40_raw?.date) {
-          return apt.field_40_raw.date.startsWith(today);
+        if (apt.field_29_raw?.date) {
+          return apt.field_29_raw.date.includes(today.replace(/-/g, "/"));
         }
-        return true; // Include if no date filtering possible
+        return true;
       });
       
       res.json(todayAppointments);

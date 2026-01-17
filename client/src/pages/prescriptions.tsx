@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { format, parseISO } from "date-fns";
 import {
   Pill,
   Plus,
@@ -13,6 +12,8 @@ import {
   Trash2,
   Filter,
   CalendarDays,
+  RefreshCw,
+  FileText,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { EmptyState } from "@/components/empty-state";
 import { DataTableSkeleton } from "@/components/data-table-skeleton";
 import type { Prescription, KnackRecordsResponse } from "@shared/schema";
+import { getPatientName, formatKnackDate } from "@shared/schema";
 
 export default function Prescriptions() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,24 +58,17 @@ export default function Prescriptions() {
 
   const filteredPrescriptions = prescriptions?.filter((prescription) => {
     const searchLower = searchQuery.toLowerCase();
+    const medicationName = (prescription.field_80 || "").toLowerCase();
+    const patientName = getPatientName(prescription.field_75_raw).toLowerCase();
     const matchesSearch =
-      (prescription.field_31 || "").toLowerCase().includes(searchLower) ||
-      (prescription.field_37 || "").toLowerCase().includes(searchLower) ||
-      (prescription.field_36 || "").toLowerCase().includes(searchLower);
+      medicationName.includes(searchLower) ||
+      patientName.includes(searchLower) ||
+      (prescription.field_24 || "").toLowerCase().includes(searchLower);
     const matchesStatus =
       statusFilter === "all" ||
-      (prescription.field_38 || "").toLowerCase() === statusFilter.toLowerCase();
+      (prescription.field_28 || "").toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
-
-  const formatDate = (dateStr: string | undefined) => {
-    if (!dateStr) return "N/A";
-    try {
-      return format(parseISO(dateStr), "MMM d, yyyy");
-    } catch {
-      return dateStr;
-    }
-  };
 
   return (
     <div className="p-6 lg:p-8">
@@ -151,11 +146,12 @@ export default function Prescriptions() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[220px]">Medication</TableHead>
+                  <TableHead className="w-[240px]">Medication & Dosage</TableHead>
                   <TableHead>Patient</TableHead>
-                  <TableHead>Dosage</TableHead>
-                  <TableHead>Frequency</TableHead>
-                  <TableHead>Start Date</TableHead>
+                  <TableHead>Instructions</TableHead>
+                  <TableHead>Issue Date</TableHead>
+                  <TableHead>Expiration</TableHead>
+                  <TableHead>Refills</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
@@ -174,38 +170,49 @@ export default function Prescriptions() {
                         </div>
                         <div>
                           <p className="font-medium">
-                            {prescription.field_31 || "Unknown Medication"}
+                            {prescription.field_80 || "Unknown Medication"}
                           </p>
-                          {prescription.field_36 && (
-                            <p className="text-sm text-muted-foreground">
-                              Prescribed by: {prescription.field_36}
-                            </p>
-                          )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span>{prescription.field_37 || "Unassigned"}</span>
+                        <span>{getPatientName(prescription.field_75_raw)}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
-                        {prescription.field_32 || "N/A"}
-                      </span>
-                    </TableCell>
-                    <TableCell>{prescription.field_33 || "N/A"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm">
-                        <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span>
-                          {formatDate(prescription.field_34_raw?.date)}
+                      <div className="flex items-center gap-2 max-w-[200px]">
+                        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate text-sm">
+                          {prescription.field_24 || "No instructions"}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={prescription.field_38 || "active"} />
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>
+                          {formatKnackDate(prescription.field_25_raw)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-sm">
+                        <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>
+                          {formatKnackDate(prescription.field_26_raw)}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span>{prescription.field_27 ?? 0}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={prescription.field_28 || "active"} />
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
