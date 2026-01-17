@@ -5,10 +5,13 @@ import {
   User,
   Mail,
   Phone,
-  Briefcase,
   Calendar,
   Pill,
   Edit,
+  FileText,
+  Heart,
+  AlertCircle,
+  Cake,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,57 +19,55 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
-import type { Account, Appointment, Prescription, KnackRecordsResponse } from "@shared/schema";
-import { formatKnackDate, formatKnackTime, getPatientName } from "@shared/schema";
+import type { Patient, Appointment, Prescription, KnackRecordsResponse, KnackConnectionField } from "@shared/schema";
+import { formatKnackDate, formatKnackTime, getPatientName as schemaGetPatientName } from "@shared/schema";
 
-function getAccountName(account: Account): string {
-  if (account.field_11_raw?.full) return account.field_11_raw.full;
-  if (account.field_11_raw) {
-    return `${account.field_11_raw.first || ""} ${account.field_11_raw.last || ""}`.trim();
+function getPatientName(patient: Patient): string {
+  if (patient.field_6_raw?.full) return patient.field_6_raw.full;
+  if (patient.field_6_raw) {
+    return `${patient.field_6_raw.first || ""} ${patient.field_6_raw.last || ""}`.trim();
   }
-  return account.field_11 || "Unknown";
+  return patient.field_6 || "Unknown";
 }
 
-function getAccountInitials(account: Account): string {
-  if (account.field_11_raw) {
-    const first = account.field_11_raw.first?.[0] || "";
-    const last = account.field_11_raw.last?.[0] || "";
+function getPatientInitials(patient: Patient): string {
+  if (patient.field_6_raw) {
+    const first = patient.field_6_raw.first?.[0] || "";
+    const last = patient.field_6_raw.last?.[0] || "";
     return `${first}${last}`.toUpperCase();
   }
-  const name = account.field_11 || "";
+  const name = patient.field_6 || "";
   const parts = name.split(" ");
-  return parts.map(p => p[0]).join("").toUpperCase().slice(0, 2);
+  return parts.map(p => p[0]).join("").toUpperCase().slice(0, 2) || "??";
 }
 
-function getEmail(account: Account): string {
-  return account.field_12_raw?.email || "";
+function getEmail(patient: Patient): string {
+  return patient.field_7_raw?.email || "";
 }
 
-function getPhone(account: Account): string {
-  if (account.field_67_raw?.formatted) return account.field_67_raw.formatted;
-  return account.field_67 || "";
+function getPhone(patient: Patient): string {
+  if (patient.field_44_raw?.formatted) return patient.field_44_raw.formatted;
+  return patient.field_44 || "";
 }
 
-function getRole(account: Account): string {
-  const parts: string[] = [];
-  if (account.field_66_raw && account.field_66_raw.length > 0) {
-    parts.push(account.field_66_raw.join(", "));
-  }
-  if (account.field_72_raw && account.field_72_raw.length > 0) {
-    parts.push(account.field_72_raw.join(", "));
-  }
-  return parts.join(" - ") || "";
+function getProfileImage(patient: Patient): string | undefined {
+  return (patient as any).field_64_raw?.url || (patient as any).field_64_raw?.thumb_url;
 }
 
-function getProfileImage(account: Account): string | undefined {
-  return account.field_64_raw?.url || account.field_64_raw?.thumb_url;
+function getDateOfBirth(patient: Patient): string {
+  if (patient.field_46_raw?.date_formatted) return patient.field_46_raw.date_formatted;
+  return patient.field_46 || "";
+}
+
+function getMedicalNotes(patient: Patient): string {
+  return patient.field_47 || "";
 }
 
 export default function PatientProfile() {
   const [, params] = useRoute("/patients/:id");
   const patientId = params?.id;
 
-  const { data: patient, isLoading: patientLoading } = useQuery<Account>({
+  const { data: patient, isLoading: patientLoading } = useQuery<Patient>({
     queryKey: ["/api/patients", patientId],
     enabled: !!patientId,
   });
@@ -82,11 +83,11 @@ export default function PatientProfile() {
   });
 
   const patientAppointments = appointmentsData?.records?.filter(
-    apt => apt.field_74_raw?.some(p => p.id === patientId)
+    apt => apt.field_74_raw?.some((p: KnackConnectionField) => p.id === patientId)
   ) || [];
 
   const patientPrescriptions = prescriptionsData?.records?.filter(
-    rx => rx.field_75_raw?.some(p => p.id === patientId)
+    rx => rx.field_75_raw?.some((p: KnackConnectionField) => p.id === patientId)
   ) || [];
 
   if (patientLoading) {
@@ -137,10 +138,17 @@ export default function PatientProfile() {
     );
   }
 
+  const patientName = getPatientName(patient);
+  const email = getEmail(patient);
+  const phone = getPhone(patient);
+  const dob = getDateOfBirth(patient);
+  const medicalNotes = getMedicalNotes(patient);
+  const status = patient.field_9 || "active";
+
   return (
     <div className="p-6 lg:p-8">
       <PageHeader
-        title={getAccountName(patient)}
+        title={patientName}
         description="Patient profile and medical records"
         className="mb-6"
       >
@@ -165,37 +173,34 @@ export default function PatientProfile() {
           <CardContent className="p-6">
             <div className="flex flex-col items-center text-center">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={getProfileImage(patient)} alt={getAccountName(patient)} />
+                <AvatarImage src={getProfileImage(patient)} alt={patientName} />
                 <AvatarFallback className="bg-primary/10 text-primary text-2xl font-medium">
-                  {getAccountInitials(patient)}
+                  {getPatientInitials(patient)}
                 </AvatarFallback>
               </Avatar>
-              <h2 className="mt-4 text-xl font-semibold">{getAccountName(patient)}</h2>
+              <h2 className="mt-4 text-xl font-semibold">{patientName}</h2>
               <div className="mt-2">
-                <StatusBadge status={patient.field_14 || "active"} />
+                <StatusBadge status={status} />
               </div>
-              {getRole(patient) && (
-                <p className="mt-2 text-sm text-muted-foreground">{getRole(patient)}</p>
-              )}
             </div>
 
             <div className="mt-6 space-y-4">
-              {getEmail(patient) && (
+              {email && (
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm truncate">{getEmail(patient)}</span>
+                  <span className="text-sm truncate">{email}</span>
                 </div>
               )}
-              {getPhone(patient) && (
+              {phone && (
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{getPhone(patient)}</span>
+                  <span className="text-sm">{phone}</span>
                 </div>
               )}
-              {getRole(patient) && (
+              {dob && (
                 <div className="flex items-center gap-3">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{getRole(patient)}</span>
+                  <Cake className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{dob}</span>
                 </div>
               )}
             </div>
@@ -212,6 +217,25 @@ export default function PatientProfile() {
         </Card>
 
         <div className="lg:col-span-2 space-y-6">
+          {medicalNotes && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Heart className="h-5 w-5 text-red-500" />
+                  Medical History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm whitespace-pre-wrap">{medicalNotes}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -223,9 +247,10 @@ export default function PatientProfile() {
               {patientAppointments.length > 0 ? (
                 <div className="space-y-3">
                   {patientAppointments.slice(0, 5).map((apt) => (
-                    <div
+                    <Link
                       key={apt.id}
-                      className="flex items-center justify-between p-3 rounded-lg border hover-elevate"
+                      href={`/appointments/${apt.id}`}
+                      className="flex items-center justify-between p-3 rounded-lg border hover-elevate block"
                     >
                       <div>
                         <p className="font-medium">
@@ -236,7 +261,7 @@ export default function PatientProfile() {
                         </p>
                       </div>
                       <StatusBadge status={apt.field_30 || "pending"} />
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

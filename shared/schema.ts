@@ -86,6 +86,62 @@ export interface KnackConnectionField {
   identifier: string;
 }
 
+// Patient type - object_2 (Patients table)
+export interface Patient {
+  id: string;
+  account_status?: string;
+  approval_status?: string;
+  profile_keys?: string;
+  profile_keys_raw?: KnackConnectionField[];
+  
+  // Name - field_6
+  field_6: string;
+  field_6_raw?: KnackNameField;
+  
+  // Email - field_7
+  field_7?: string;
+  field_7_raw?: KnackEmailField;
+  
+  // Password - field_8
+  field_8?: string;
+  
+  // Status - field_9 (active, inactive, etc.)
+  field_9?: string;
+  field_9_raw?: string;
+  
+  // Phone - field_44
+  field_44?: string;
+  field_44_raw?: KnackPhoneField;
+  
+  // Address - field_45
+  field_45?: string;
+  field_45_raw?: KnackAddressField;
+  
+  // Date of Birth - field_46
+  field_46?: string;
+  field_46_raw?: KnackDateField;
+  
+  // Medical Notes/History - field_47
+  field_47?: string;
+  field_47_raw?: string;
+  
+  // Profile Image - field_64
+  field_64?: string;
+  field_64_raw?: {
+    url: string;
+    thumb_url?: string;
+    filename?: string;
+  };
+  
+  // Created Date - field_85
+  field_85?: string;
+  field_85_raw?: KnackDateField;
+  
+  // Updated Date - field_86
+  field_86?: string;
+  field_86_raw?: KnackDateField;
+}
+
 // Account/User type - object_3 (includes both Staff and Patients)
 export interface Account {
   id: string;
