@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
+import { NPIPhysicianAutocomplete } from "@/components/npi-physician-autocomplete";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Account, KnackRecordsResponse } from "@shared/schema";
 
@@ -231,12 +232,10 @@ export default function AppointmentNew() {
                 <UserPlus className="h-4 w-4" />
                 Referring Physician
               </Label>
-              <Input
-                id="referringPhysician"
-                placeholder="Enter referring physician name (optional)"
+              <NPIPhysicianAutocomplete
                 value={formData.referringPhysician}
-                onChange={(e) => setFormData({ ...formData, referringPhysician: e.target.value })}
-                data-testid="input-referring-physician"
+                onChange={(value) => setFormData({ ...formData, referringPhysician: value })}
+                placeholder="Search NPI registry for physician..."
               />
             </div>
 
