@@ -28,8 +28,8 @@ export function StatsCard({
   href,
 }: StatsCardProps) {
   const cardContent = (
-    <Card className={cn("hover-elevate", href && "cursor-pointer", className)}>
-      <CardContent className="p-6">
+    <Card className={cn("hover-elevate h-full", href && "cursor-pointer", className)}>
+      <CardContent className="p-6 h-full">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <p className="text-sm font-medium text-muted-foreground">{title}</p>

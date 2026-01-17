@@ -116,7 +116,6 @@ export default function Dashboard() {
           value={statsData.totalPatients}
           subtitle="Registered patients"
           icon={Users}
-          trend={{ value: 12, isPositive: true }}
           iconClassName="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
           href="/patients"
         />
