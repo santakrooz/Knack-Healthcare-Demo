@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -13,6 +14,7 @@ interface StatsCardProps {
   };
   className?: string;
   iconClassName?: string;
+  href?: string;
 }
 
 export function StatsCard({
@@ -23,9 +25,10 @@ export function StatsCard({
   trend,
   className,
   iconClassName,
+  href,
 }: StatsCardProps) {
-  return (
-    <Card className={cn("hover-elevate", className)}>
+  const cardContent = (
+    <Card className={cn("hover-elevate", href && "cursor-pointer", className)}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
@@ -61,4 +64,10 @@ export function StatsCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return <Link href={href}>{cardContent}</Link>;
+  }
+
+  return cardContent;
 }

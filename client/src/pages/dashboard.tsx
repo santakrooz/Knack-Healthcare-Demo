@@ -118,6 +118,7 @@ export default function Dashboard() {
           icon={Users}
           trend={{ value: 12, isPositive: true }}
           iconClassName="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+          href="/patients"
         />
         <StatsCard
           title="Total Appointments"
@@ -125,6 +126,7 @@ export default function Dashboard() {
           subtitle="Currently scheduled"
           icon={Calendar}
           iconClassName="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+          href="/appointments"
         />
         <StatsCard
           title="Active Prescriptions"
@@ -132,6 +134,7 @@ export default function Dashboard() {
           subtitle="Currently active"
           icon={Pill}
           iconClassName="bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"
+          href="/prescriptions"
         />
         <StatsCard
           title="Pending Forms"
