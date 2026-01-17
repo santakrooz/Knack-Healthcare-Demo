@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowLeft, User, Mail, Phone, Briefcase } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Calendar, FileText } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -28,23 +29,31 @@ export default function PatientNew() {
     email: "",
     phone: "",
     status: "active",
-    role: "",
-    specialty: "",
+    dateOfBirth: "",
+    medicalNotes: "",
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const payload = {
-        field_11: {
+      const payload: Record<string, unknown> = {
+        field_6: {
           first: data.firstName,
+          middle: "",
           last: data.lastName,
+          title: "",
         },
-        field_12: data.email,
-        field_14: data.status,
-        field_66: data.role ? [data.role] : [],
-        field_72: data.specialty ? [data.specialty] : [],
-        field_67: data.phone,
+        field_7: { email: data.email },
+        field_9: data.status,
       };
+      if (data.phone) {
+        payload.field_44 = data.phone;
+      }
+      if (data.dateOfBirth) {
+        payload.field_46 = data.dateOfBirth;
+      }
+      if (data.medicalNotes) {
+        payload.field_47 = data.medicalNotes;
+      }
       return apiRequest("POST", "/api/patients", payload);
     },
     onSuccess: () => {
@@ -156,6 +165,20 @@ export default function PatientNew() {
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="dateOfBirth" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Date of Birth
+              </Label>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                data-testid="input-date-of-birth"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
                 value={formData.status}
@@ -173,46 +196,18 @@ export default function PatientNew() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role" className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                Role (Optional)
+              <Label htmlFor="medicalNotes" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Medical Notes (Optional)
               </Label>
-              <Select
-                value={formData.role || "none"}
-                onValueChange={(value) => setFormData({ ...formData, role: value === "none" ? "" : value })}
-              >
-                <SelectTrigger data-testid="select-role">
-                  <SelectValue placeholder="Select a role (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="Physician">Physician</SelectItem>
-                  <SelectItem value="Nurse">Nurse</SelectItem>
-                  <SelectItem value="Medical Assistant">Medical Assistant</SelectItem>
-                  <SelectItem value="Administrative">Administrative</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="specialty">Specialty (Optional)</Label>
-              <Select
-                value={formData.specialty || "none"}
-                onValueChange={(value) => setFormData({ ...formData, specialty: value === "none" ? "" : value })}
-              >
-                <SelectTrigger data-testid="select-specialty">
-                  <SelectValue placeholder="Select a specialty (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="General Practice">General Practice</SelectItem>
-                  <SelectItem value="Cardiology">Cardiology</SelectItem>
-                  <SelectItem value="Neurology">Neurology</SelectItem>
-                  <SelectItem value="Orthopedics">Orthopedics</SelectItem>
-                  <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-                  <SelectItem value="Surgery Scheduling">Surgery Scheduling</SelectItem>
-                </SelectContent>
-              </Select>
+              <Textarea
+                id="medicalNotes"
+                placeholder="Any allergies, conditions, or notes about the patient..."
+                value={formData.medicalNotes}
+                onChange={(e) => setFormData({ ...formData, medicalNotes: e.target.value })}
+                rows={4}
+                data-testid="textarea-medical-notes"
+              />
             </div>
 
             <div className="flex gap-4 pt-4">
