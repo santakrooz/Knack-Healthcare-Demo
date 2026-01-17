@@ -6,6 +6,7 @@ import {
   Clock,
   User,
   UserCheck,
+  UserPlus,
   MapPin,
   FileText,
   Edit,
@@ -72,6 +73,7 @@ export default function AppointmentDetails() {
   const appointmentType = appointment.field_32 || "General";
   const notes = appointment.field_31 || "";
   const location = (appointment as any).field_83 || "Main Office";
+  const referringPhysician = appointment.field_8 || "";
 
   return (
     <div className="p-6 lg:p-8">
@@ -163,6 +165,17 @@ export default function AppointmentDetails() {
                 <p className="font-semibold">{providerName}</p>
               </div>
             </div>
+            {referringPhysician && (
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
+                  <UserPlus className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Referring Physician</p>
+                  <p className="font-semibold">{referringPhysician}</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowLeft, Calendar, Clock, User, UserCheck, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, UserCheck, UserPlus, FileText } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ export default function AppointmentNew() {
   const [formData, setFormData] = useState({
     patientId: "",
     providerId: "",
+    referringPhysician: "",
     date: "",
     time: "",
     status: "Scheduled",
@@ -55,13 +56,16 @@ export default function AppointmentNew() {
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
       const dateTime = `${data.date} ${data.time}`;
-      const payload = {
+      const payload: Record<string, any> = {
         field_29: dateTime,
         field_30: data.status,
         field_31: data.notes,
         field_74: data.patientId ? [data.patientId] : [],
         field_77: data.providerId ? [data.providerId] : [],
       };
+      if (data.referringPhysician) {
+        payload.field_8 = data.referringPhysician;
+      }
       return apiRequest("POST", "/api/appointments", payload);
     },
     onSuccess: () => {
@@ -206,6 +210,20 @@ export default function AppointmentNew() {
                   data-testid="input-time"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="referringPhysician" className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                Referring Physician
+              </Label>
+              <Input
+                id="referringPhysician"
+                placeholder="Enter referring physician name (optional)"
+                value={formData.referringPhysician}
+                onChange={(e) => setFormData({ ...formData, referringPhysician: e.target.value })}
+                data-testid="input-referring-physician"
+              />
             </div>
 
             <div className="space-y-2">

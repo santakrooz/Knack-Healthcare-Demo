@@ -235,6 +235,10 @@ export interface Prescription {
 export interface Appointment {
   id: string;
   
+  // Referring Physician - field_8 (text field)
+  field_8?: string;
+  field_8_raw?: string;
+  
   // Appointment Date/Time - field_29
   field_29: string;
   field_29_raw: KnackDateField;
