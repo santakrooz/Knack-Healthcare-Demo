@@ -8,8 +8,12 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import Dashboard from "@/pages/dashboard";
 import Patients from "@/pages/patients";
+import PatientNew from "@/pages/patient-new";
+import PatientProfile from "@/pages/patient-profile";
 import Appointments from "@/pages/appointments";
+import AppointmentNew from "@/pages/appointment-new";
 import Prescriptions from "@/pages/prescriptions";
+import PrescriptionNew from "@/pages/prescription-new";
 import Diagnoses from "@/pages/diagnoses";
 import Insurance from "@/pages/insurance";
 import Settings from "@/pages/settings";
@@ -21,8 +25,12 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/patients" component={Patients} />
+      <Route path="/patients/new" component={PatientNew} />
+      <Route path="/patients/:id" component={PatientProfile} />
       <Route path="/appointments" component={Appointments} />
+      <Route path="/appointments/new" component={AppointmentNew} />
       <Route path="/prescriptions" component={Prescriptions} />
+      <Route path="/prescriptions/new" component={PrescriptionNew} />
       <Route path="/diagnoses" component={Diagnoses} />
       <Route path="/insurance" component={Insurance} />
       <Route path="/settings" component={Settings} />
