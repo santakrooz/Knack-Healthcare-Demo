@@ -1,0 +1,197 @@
+import { useState, useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Loader2, Pill, ChevronDown } from "lucide-react";
+
+interface DrugSuggestion {
+  name: string;
+  rxcui: string;
+  strengths: string[];
+}
+
+interface MedicationAutocompleteProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export function MedicationAutocomplete({
+  value,
+  onChange,
+  placeholder = "Search for medication...",
+  className,
+}: MedicationAutocompleteProps) {
+  const [inputValue, setInputValue] = useState(value);
+  const [suggestions, setSuggestions] = useState<DrugSuggestion[]>([]);
+  const [selectedDrug, setSelectedDrug] = useState<DrugSuggestion | null>(null);
+  const [showStrengths, setShowStrengths] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setInputValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setShowStrengths(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (inputValue.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    if (selectedDrug && inputValue === selectedDrug.name) {
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://clinicaltables.nlm.nih.gov/api/rxterms/v3/search?terms=${encodeURIComponent(inputValue)}&ef=STRENGTHS_AND_FORMS&maxList=10`
+        );
+        const data = await response.json();
+        
+        const [, codes, , names, extras] = data;
+        
+        if (names && names.length > 0) {
+          const formattedSuggestions: DrugSuggestion[] = names.map((name: string, index: number) => ({
+            name,
+            rxcui: codes[index],
+            strengths: extras?.STRENGTHS_AND_FORMS?.[index] || [],
+          }));
+          
+          setSuggestions(formattedSuggestions);
+          setIsOpen(true);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (error) {
+        console.error("Error fetching drug suggestions:", error);
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [inputValue, selectedDrug]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    setSelectedDrug(null);
+    setShowStrengths(false);
+    onChange(newValue);
+  };
+
+  const handleSelectDrug = (drug: DrugSuggestion) => {
+    setSelectedDrug(drug);
+    if (drug.strengths.length > 0) {
+      setShowStrengths(true);
+      setSuggestions([]);
+    } else {
+      setInputValue(drug.name);
+      onChange(drug.name);
+      setIsOpen(false);
+    }
+  };
+
+  const handleSelectStrength = (strength: string) => {
+    const fullValue = strength;
+    setInputValue(fullValue);
+    onChange(fullValue);
+    setShowStrengths(false);
+    setSelectedDrug(null);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={wrapperRef} className={cn("relative", className)}>
+      <div className="relative">
+        <Input
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={() => inputValue.length >= 2 && suggestions.length > 0 && setIsOpen(true)}
+          placeholder={placeholder}
+          className="pr-10"
+          data-testid="input-medication"
+        />
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <Pill className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      </div>
+
+      {isOpen && suggestions.length > 0 && !showStrengths && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
+          <ul className="max-h-60 overflow-auto py-1">
+            {suggestions.map((drug, index) => (
+              <li
+                key={`${drug.rxcui}-${index}`}
+                onClick={() => handleSelectDrug(drug)}
+                className="flex cursor-pointer items-center justify-between px-3 py-2 hover-elevate"
+                data-testid={`suggestion-drug-${index}`}
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{drug.name}</p>
+                  {drug.strengths.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {drug.strengths.length} strength{drug.strengths.length !== 1 ? "s" : ""} available
+                    </p>
+                  )}
+                </div>
+                {drug.strengths.length > 0 && (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {showStrengths && selectedDrug && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
+          <div className="border-b px-3 py-2">
+            <p className="text-sm font-medium text-muted-foreground">
+              Select strength for {selectedDrug.name}
+            </p>
+          </div>
+          <ul className="max-h-60 overflow-auto py-1">
+            {selectedDrug.strengths.map((strength, index) => (
+              <li
+                key={index}
+                onClick={() => handleSelectStrength(strength)}
+                className="cursor-pointer px-3 py-2 text-sm hover-elevate"
+                data-testid={`suggestion-strength-${index}`}
+              >
+                {strength}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {inputValue.length >= 2 && !loading && suggestions.length === 0 && isOpen && !showStrengths && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover px-3 py-2 shadow-lg">
+          <p className="text-sm text-muted-foreground">No medications found</p>
+        </div>
+      )}
+    </div>
+  );
+}

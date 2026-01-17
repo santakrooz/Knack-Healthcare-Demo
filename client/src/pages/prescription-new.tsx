@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MedicationAutocomplete } from "@/components/medication-autocomplete";
 import {
   Select,
   SelectContent,
@@ -127,13 +128,14 @@ export default function PrescriptionNew() {
                 <Pill className="h-4 w-4" />
                 Medication & Dosage *
               </Label>
-              <Input
-                id="medication"
-                placeholder="e.g., Lisinopril 40mg"
+              <MedicationAutocomplete
                 value={formData.medication}
-                onChange={(e) => setFormData({ ...formData, medication: e.target.value })}
-                data-testid="input-medication"
+                onChange={(value) => setFormData({ ...formData, medication: value })}
+                placeholder="Search for medication (e.g., Lisinopril, Aspirin)"
               />
+              <p className="text-xs text-muted-foreground">
+                Start typing to search the drug database
+              </p>
             </div>
 
             <div className="space-y-2">
