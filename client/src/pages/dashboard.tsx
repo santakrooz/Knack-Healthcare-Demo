@@ -109,11 +109,10 @@ export default function Dashboard() {
           iconClassName="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
         />
         <StatsCard
-          title="Today's Appointments"
+          title="Total Appointments"
           value={statsData.todayAppointments}
-          subtitle="Scheduled for today"
+          subtitle="Currently scheduled"
           icon={Calendar}
-          trend={{ value: 5, isPositive: true }}
           iconClassName="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
         />
         <StatsCard
