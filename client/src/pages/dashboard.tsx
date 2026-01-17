@@ -16,37 +16,48 @@ import { StatsCard } from "@/components/stats-card";
 import { StatusBadge } from "@/components/status-badge";
 import { DashboardSkeleton } from "@/components/data-table-skeleton";
 import { PageHeader } from "@/components/page-header";
-import type { DashboardStats, Account, Appointment } from "@shared/schema";
-import { getPatientName, formatKnackTime } from "@shared/schema";
+import type { DashboardStats, Appointment } from "@shared/schema";
+import { formatKnackTime } from "@shared/schema";
 
-// Helper functions for Account
-function getAccountName(account: Account): string {
-  if (account.field_11_raw?.full) {
-    return account.field_11_raw.full;
-  }
-  if (account.field_11_raw) {
-    return `${account.field_11_raw.first || ""} ${account.field_11_raw.last || ""}`.trim();
-  }
-  return account.field_11 || "Unknown";
+// Patient interface for object_2 data
+interface Patient {
+  id: string;
+  field_6: string;
+  field_6_raw?: { first?: string; last?: string; full?: string };
+  field_7_raw?: { email: string };
+  field_9?: string;
+  field_9_raw?: string;
+  field_64_raw?: { url?: string; thumb_url?: string };
 }
 
-function getAccountInitials(account: Account): string {
-  if (account.field_11_raw) {
-    const first = account.field_11_raw.first?.[0] || "";
-    const last = account.field_11_raw.last?.[0] || "";
+// Helper functions for Patient (object_2)
+function getPatientName(patient: Patient): string {
+  if (patient.field_6_raw?.full) {
+    return patient.field_6_raw.full;
+  }
+  if (patient.field_6_raw) {
+    return `${patient.field_6_raw.first || ""} ${patient.field_6_raw.last || ""}`.trim();
+  }
+  return patient.field_6 || "Unknown";
+}
+
+function getPatientInitials(patient: Patient): string {
+  if (patient.field_6_raw) {
+    const first = patient.field_6_raw.first?.[0] || "";
+    const last = patient.field_6_raw.last?.[0] || "";
     return `${first}${last}`.toUpperCase();
   }
-  const name = account.field_11 || "";
+  const name = patient.field_6 || "";
   const parts = name.split(" ");
   return parts.map(p => p[0]).join("").toUpperCase().slice(0, 2);
 }
 
-function getAccountEmail(account: Account): string {
-  return account.field_12_raw?.email || "";
+function getPatientEmail(patient: Patient): string {
+  return patient.field_7_raw?.email || "";
 }
 
-function getProfileImage(account: Account): string | undefined {
-  return account.field_64_raw?.url || account.field_64_raw?.thumb_url;
+function getProfileImage(patient: Patient): string | undefined {
+  return patient.field_64_raw?.url || patient.field_64_raw?.thumb_url;
 }
 
 export default function Dashboard() {
@@ -54,7 +65,7 @@ export default function Dashboard() {
     queryKey: ["/api/dashboard/stats"],
   });
 
-  const { data: recentPatients, isLoading: patientsLoading } = useQuery<Account[]>({
+  const { data: recentPatients, isLoading: patientsLoading } = useQuery<Patient[]>({
     queryKey: ["/api/patients/recent"],
   });
 
@@ -158,7 +169,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {getPatientName(appointment.field_74_raw)}
+                        {appointment.field_74_raw?.[0]?.identifier || "Unknown Patient"}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {formatKnackTime(appointment.field_29_raw) || "Time TBD"}
@@ -204,20 +215,20 @@ export default function Dashboard() {
                     data-testid={`patient-item-${patient.id}`}
                   >
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={getProfileImage(patient)} alt={getAccountName(patient)} />
+                      <AvatarImage src={getProfileImage(patient)} alt={getPatientName(patient)} />
                       <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {getAccountInitials(patient)}
+                        {getPatientInitials(patient)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">
-                        {getAccountName(patient)}
+                        {getPatientName(patient)}
                       </p>
                       <p className="text-sm text-muted-foreground truncate">
-                        {getAccountEmail(patient) || "No email"}
+                        {getPatientEmail(patient) || "No email"}
                       </p>
                     </div>
-                    <StatusBadge status={patient.field_14 || "active"} />
+                    <StatusBadge status={patient.field_9 || "active"} />
                   </div>
                 ))}
               </div>
