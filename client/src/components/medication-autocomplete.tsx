@@ -123,7 +123,8 @@ export function MedicationAutocomplete({
   };
 
   const handleSelectStrength = (strength: string) => {
-    const fullValue = strength;
+    const drugName = selectedDrug?.name?.replace(/\s*\(.*\)$/, "") || "";
+    const fullValue = `${drugName} ${strength.trim()}`;
     setInputValue(fullValue);
     onChange(fullValue);
     setShowStrengths(false);
