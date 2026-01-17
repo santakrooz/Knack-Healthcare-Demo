@@ -12,6 +12,7 @@ import PatientNew from "@/pages/patient-new";
 import PatientProfile from "@/pages/patient-profile";
 import Appointments from "@/pages/appointments";
 import AppointmentNew from "@/pages/appointment-new";
+import AppointmentDetails from "@/pages/appointment-details";
 import Prescriptions from "@/pages/prescriptions";
 import PrescriptionNew from "@/pages/prescription-new";
 import Diagnoses from "@/pages/diagnoses";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/patients/:id" component={PatientProfile} />
       <Route path="/appointments" component={Appointments} />
       <Route path="/appointments/new" component={AppointmentNew} />
+      <Route path="/appointments/:id" component={AppointmentDetails} />
       <Route path="/prescriptions" component={Prescriptions} />
       <Route path="/prescriptions/new" component={PrescriptionNew} />
       <Route path="/diagnoses" component={Diagnoses} />
