@@ -10,12 +10,15 @@ import Dashboard from "@/pages/dashboard";
 import Patients from "@/pages/patients";
 import PatientNew from "@/pages/patient-new";
 import PatientProfile from "@/pages/patient-profile";
+import PatientEdit from "@/pages/patient-edit";
 import Appointments from "@/pages/appointments";
 import AppointmentNew from "@/pages/appointment-new";
 import AppointmentDetails from "@/pages/appointment-details";
+import AppointmentEdit from "@/pages/appointment-edit";
 import Prescriptions from "@/pages/prescriptions";
 import PrescriptionNew from "@/pages/prescription-new";
 import PrescriptionDetails from "@/pages/prescription-details";
+import PrescriptionEdit from "@/pages/prescription-edit";
 import Diagnoses from "@/pages/diagnoses";
 import Insurance from "@/pages/insurance";
 import Settings from "@/pages/settings";
@@ -28,12 +31,15 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/patients" component={Patients} />
       <Route path="/patients/new" component={PatientNew} />
+      <Route path="/patients/:id/edit" component={PatientEdit} />
       <Route path="/patients/:id" component={PatientProfile} />
       <Route path="/appointments" component={Appointments} />
       <Route path="/appointments/new" component={AppointmentNew} />
+      <Route path="/appointments/:id/edit" component={AppointmentEdit} />
       <Route path="/appointments/:id" component={AppointmentDetails} />
       <Route path="/prescriptions" component={Prescriptions} />
       <Route path="/prescriptions/new" component={PrescriptionNew} />
+      <Route path="/prescriptions/:id/edit" component={PrescriptionEdit} />
       <Route path="/prescriptions/:id" component={PrescriptionDetails} />
       <Route path="/diagnoses" component={Diagnoses} />
       <Route path="/insurance" component={Insurance} />

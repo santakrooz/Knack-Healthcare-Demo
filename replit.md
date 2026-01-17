@@ -22,6 +22,13 @@ Preferred communication style: Simple, everyday language.
 
 The frontend follows a page-based architecture with shared components. Key pages include Dashboard, Patients, Appointments, Prescriptions, Diagnoses, Insurance, Settings, and Help. Reusable components like PageHeader, StatsCard, StatusBadge, and DataTableSkeleton provide consistent UI patterns.
 
+#### Edit Page Pattern
+Edit pages (patient-edit, appointment-edit, prescription-edit) use a two-component pattern to ensure forms are properly pre-populated:
+1. **Outer component**: Fetches data using React Query, shows loading spinner while data loads
+2. **Inner form component**: Receives data as props, uses `useState(() => getInitialFormData(data))` to initialize form with correct values
+
+This pattern avoids timing issues where useState would initialize with empty values before data arrived.
+
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **API Pattern**: REST API endpoints proxying to Knack backend service
