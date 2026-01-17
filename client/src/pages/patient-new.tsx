@@ -178,14 +178,14 @@ export default function PatientNew() {
                 Role (Optional)
               </Label>
               <Select
-                value={formData.role}
-                onValueChange={(value) => setFormData({ ...formData, role: value })}
+                value={formData.role || "none"}
+                onValueChange={(value) => setFormData({ ...formData, role: value === "none" ? "" : value })}
               >
                 <SelectTrigger data-testid="select-role">
                   <SelectValue placeholder="Select a role (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   <SelectItem value="Physician">Physician</SelectItem>
                   <SelectItem value="Nurse">Nurse</SelectItem>
                   <SelectItem value="Medical Assistant">Medical Assistant</SelectItem>
@@ -197,14 +197,14 @@ export default function PatientNew() {
             <div className="space-y-2">
               <Label htmlFor="specialty">Specialty (Optional)</Label>
               <Select
-                value={formData.specialty}
-                onValueChange={(value) => setFormData({ ...formData, specialty: value })}
+                value={formData.specialty || "none"}
+                onValueChange={(value) => setFormData({ ...formData, specialty: value === "none" ? "" : value })}
               >
                 <SelectTrigger data-testid="select-specialty">
                   <SelectValue placeholder="Select a specialty (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   <SelectItem value="General Practice">General Practice</SelectItem>
                   <SelectItem value="Cardiology">Cardiology</SelectItem>
                   <SelectItem value="Neurology">Neurology</SelectItem>
