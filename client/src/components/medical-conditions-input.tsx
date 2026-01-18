@@ -61,10 +61,17 @@ export function MedicalConditionsInput({
         );
         const data = await response.json();
         
-        const [, names] = data;
+        // API response format: [count, codes, extras, display_names]
+        // Index 3 contains arrays of display strings - we want the first element of each
+        const displayNamesRaw = data[3];
         
-        if (names && names.length > 0) {
-          const filteredNames = names.filter(
+        if (displayNamesRaw && displayNamesRaw.length > 0) {
+          // Each item in displayNamesRaw is an array, take the first element (the condition name)
+          const displayNames = displayNamesRaw.map((item: string | string[]) => 
+            Array.isArray(item) ? item[0] : item
+          ).filter(Boolean);
+          
+          const filteredNames = displayNames.filter(
             (name: string) => !conditions.includes(name)
           );
           setSuggestions(filteredNames);
