@@ -211,9 +211,10 @@ export default function Dashboard() {
             {recentPatients && recentPatients.length > 0 ? (
               <div className="space-y-4">
                 {recentPatients.slice(0, 5).map((patient) => (
-                  <div
+                  <Link
                     key={patient.id}
-                    className="flex items-center gap-4 rounded-lg border p-4 hover-elevate"
+                    href={`/patients/${patient.id}`}
+                    className="flex items-center gap-4 rounded-lg border p-4 hover-elevate cursor-pointer block"
                     data-testid={`patient-item-${patient.id}`}
                   >
                     <Avatar className="h-12 w-12">
@@ -231,7 +232,7 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <StatusBadge status={patient.field_9 || "active"} />
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
