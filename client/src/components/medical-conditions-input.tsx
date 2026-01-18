@@ -17,24 +17,14 @@ export function MedicalConditionsInput({
   placeholder = "Search for medical condition...",
   className,
 }: MedicalConditionsInputProps) {
-  const [conditions, setConditions] = useState<string[]>(() => {
-    if (!value) return [];
-    return value.split(",").map(c => c.trim()).filter(Boolean);
-  });
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!value) {
-      setConditions([]);
-      return;
-    }
-    const newConditions = value.split(",").map(c => c.trim()).filter(Boolean);
-    setConditions(newConditions);
-  }, [value]);
+  // Derive conditions from the value prop to avoid sync issues
+  const conditions = value ? value.split(",").map(c => c.trim()).filter(Boolean) : [];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -95,7 +85,6 @@ export function MedicalConditionsInput({
     if (!trimmed || conditions.includes(trimmed)) return;
     
     const newConditions = [...conditions, trimmed];
-    setConditions(newConditions);
     onChange(newConditions.join(", "));
     setInputValue("");
     setSuggestions([]);
@@ -104,7 +93,6 @@ export function MedicalConditionsInput({
 
   const removeCondition = (index: number) => {
     const newConditions = conditions.filter((_, i) => i !== index);
-    setConditions(newConditions);
     onChange(newConditions.join(", "));
   };
 
