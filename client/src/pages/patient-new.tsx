@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { MedicalConditionsInput } from "@/components/medical-conditions-input";
+import { PhysiciansMultiInput } from "@/components/physicians-multi-input";
 
 export default function PatientNew() {
   const [, navigate] = useLocation();
@@ -31,6 +32,7 @@ export default function PatientNew() {
     status: "active",
     dateOfBirth: "",
     medicalNotes: "",
+    otherPhysicians: "",
   });
 
   const createMutation = useMutation({
@@ -53,6 +55,9 @@ export default function PatientNew() {
       }
       if (data.medicalNotes) {
         payload.field_47 = data.medicalNotes;
+      }
+      if (data.otherPhysicians) {
+        payload.field_48 = data.otherPhysicians;
       }
       return apiRequest("POST", "/api/patients", payload);
     },
@@ -204,6 +209,18 @@ export default function PatientNew() {
                 value={formData.medicalNotes}
                 onChange={(value) => setFormData({ ...formData, medicalNotes: value })}
                 placeholder="Search for medical conditions..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="otherPhysicians" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Other Physicians (Optional)
+              </Label>
+              <PhysiciansMultiInput
+                value={formData.otherPhysicians}
+                onChange={(value) => setFormData({ ...formData, otherPhysicians: value })}
+                placeholder="Search for physicians by name..."
               />
             </div>
 

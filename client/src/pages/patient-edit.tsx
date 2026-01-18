@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { MedicalConditionsInput } from "@/components/medical-conditions-input";
+import { PhysiciansMultiInput } from "@/components/physicians-multi-input";
 import type { Patient } from "@shared/schema";
 
 function formatDobForInput(dob: string): string {
@@ -39,6 +40,7 @@ function getInitialFormData(patientData: Patient | undefined) {
       dateOfBirth: "",
       status: "Active",
       medicalHistory: "",
+      otherPhysicians: "",
     };
   }
   
@@ -63,6 +65,7 @@ function getInitialFormData(patientData: Patient | undefined) {
     dateOfBirth: formatDobForInput(dobStr),
     status: patientData.field_9_raw || patientData.field_9 || "Active",
     medicalHistory: patientData.field_47_raw || patientData.field_47 || "",
+    otherPhysicians: patientData.field_48_raw || patientData.field_48 || "",
   };
 }
 
@@ -133,6 +136,9 @@ function PatientEditForm({
       }
       if (data.medicalHistory) {
         payload.field_47 = data.medicalHistory;
+      }
+      if (data.otherPhysicians) {
+        payload.field_48 = data.otherPhysicians;
       }
       return apiRequest("PUT", `/api/patients/${patientId}`, payload);
     },
@@ -285,6 +291,18 @@ function PatientEditForm({
                 value={formData.medicalHistory}
                 onChange={(value) => setFormData({ ...formData, medicalHistory: value })}
                 placeholder="Search for medical conditions..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="otherPhysicians" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Other Physicians
+              </Label>
+              <PhysiciansMultiInput
+                value={formData.otherPhysicians}
+                onChange={(value) => setFormData({ ...formData, otherPhysicians: value })}
+                placeholder="Search for physicians by name..."
               />
             </div>
 

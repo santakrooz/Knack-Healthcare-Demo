@@ -12,6 +12,7 @@ import {
   Heart,
   AlertCircle,
   Cake,
+  Stethoscope,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,10 @@ function getDateOfBirth(patient: Patient): string {
 
 function getMedicalNotes(patient: Patient): string {
   return patient.field_47 || "";
+}
+
+function getOtherPhysicians(patient: Patient): string {
+  return patient.field_48 || "";
 }
 
 export default function PatientProfile() {
@@ -143,6 +148,7 @@ export default function PatientProfile() {
   const phone = getPhone(patient);
   const dob = getDateOfBirth(patient);
   const medicalNotes = getMedicalNotes(patient);
+  const otherPhysicians = getOtherPhysicians(patient);
   const status = patient.field_9 || "active";
 
   return (
@@ -231,6 +237,29 @@ export default function PatientProfile() {
                     <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
                     <p className="text-sm whitespace-pre-wrap">{medicalNotes}</p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {otherPhysicians && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Stethoscope className="h-5 w-5 text-primary" />
+                  Other Physicians
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {otherPhysicians.split(",").map((physician, index) => (
+                    <div
+                      key={index}
+                      className="px-3 py-1.5 rounded-md bg-muted text-sm"
+                    >
+                      {physician.trim()}
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
