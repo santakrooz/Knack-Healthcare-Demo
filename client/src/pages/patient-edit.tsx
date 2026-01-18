@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, User, Mail, Phone, Calendar, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Calendar, Stethoscope, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { MedicalConditionsInput } from "@/components/medical-conditions-input";
 import type { Patient } from "@shared/schema";
 
 function formatDobForInput(dob: string): string {
@@ -278,16 +278,13 @@ function PatientEditForm({
 
             <div className="space-y-2">
               <Label htmlFor="medicalHistory" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <Stethoscope className="h-4 w-4" />
                 Medical History
               </Label>
-              <Textarea
-                id="medicalHistory"
-                placeholder="Enter medical history notes..."
+              <MedicalConditionsInput
                 value={formData.medicalHistory}
-                onChange={(e) => setFormData({ ...formData, medicalHistory: e.target.value })}
-                rows={4}
-                data-testid="input-medical-history"
+                onChange={(value) => setFormData({ ...formData, medicalHistory: value })}
+                placeholder="Search for medical conditions..."
               />
             </div>
 

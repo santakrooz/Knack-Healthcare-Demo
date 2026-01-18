@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowLeft, User, Mail, Phone, Calendar, FileText } from "lucide-react";
+import { ArrowLeft, User, Mail, Phone, Calendar, Stethoscope } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,6 +17,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { MedicalConditionsInput } from "@/components/medical-conditions-input";
 
 export default function PatientNew() {
   const [, navigate] = useLocation();
@@ -197,16 +197,13 @@ export default function PatientNew() {
 
             <div className="space-y-2">
               <Label htmlFor="medicalNotes" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Medical Notes (Optional)
+                <Stethoscope className="h-4 w-4" />
+                Medical History (Optional)
               </Label>
-              <Textarea
-                id="medicalNotes"
-                placeholder="Any allergies, conditions, or notes about the patient..."
+              <MedicalConditionsInput
                 value={formData.medicalNotes}
-                onChange={(e) => setFormData({ ...formData, medicalNotes: e.target.value })}
-                rows={4}
-                data-testid="textarea-medical-notes"
+                onChange={(value) => setFormData({ ...formData, medicalNotes: value })}
+                placeholder="Search for medical conditions..."
               />
             </div>
 
