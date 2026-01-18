@@ -444,5 +444,70 @@ export async function registerRoutes(
     }
   });
 
+  // Healthcare Data Lookups - fetch version info from NLM Clinical Tables
+  app.get("/api/healthcare-lookups/versions", async (_req: Request, res: ExpressResponse) => {
+    try {
+      // Fetch version info from official API endpoints (NPI, RxTerms have dedicated endpoints)
+      // Conditions doesn't have a version endpoint, so we scrape from the docs page
+      const [npiVersionRes, rxtermsVersionRes, conditionsDocsRes] = await Promise.all([
+        fetch("https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/data_version"),
+        fetch("https://clinicaltables.nlm.nih.gov/api/rxterms/v3/data_version"),
+        fetch("https://clinicaltables.nlm.nih.gov/apidoc/conditions/v3/doc.html"),
+      ]);
+
+      const [npiVersionText, rxtermsVersionText, conditionsHtml] = await Promise.all([
+        npiVersionRes.text(),
+        rxtermsVersionRes.text(),
+        conditionsDocsRes.text(),
+      ]);
+
+      // NPI and RxTerms return plain text version strings
+      const npiVersion = npiVersionRes.ok ? npiVersionText.trim() : "Unknown";
+      const rxtermsVersion = rxtermsVersionRes.ok ? rxtermsVersionText.trim() : "Unknown";
+
+      // Conditions: Extract from download link "cond_proc_download-2025-10-01.json.zip"
+      const conditionsVersionMatch = conditionsHtml.match(/cond_proc_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
+      const conditionsVersion = conditionsVersionMatch ? conditionsVersionMatch[1] : "Unknown";
+
+      res.json({
+        physicians: {
+          name: "Physician Lookup",
+          apiName: "API for NPI (National Provider Identifier) Records - Individuals",
+          version: npiVersion,
+          versionLabel: "Data version",
+          sources: [
+            { name: "NPI (National Provider Identifier) records", provider: "CMS (Centers for Medicare & Medicaid Services)" },
+            { name: "Health Care Provider Taxonomy", provider: "NUCC (National Uniform Claim Committee)" },
+            { name: "Crosswalk Medicare Provider/Supplier to Healthcare Provider Taxonomy", provider: "CMS (Centers for Medicare & Medicaid Services)" },
+          ],
+          docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/npi_idv/v3/doc.html",
+        },
+        prescriptions: {
+          name: "Prescription Lookup",
+          apiName: "API for RxTerms",
+          version: rxtermsVersion,
+          versionLabel: "RxTerms version",
+          sources: [
+            { name: "RxTerms", provider: "Derived from RxNorm, the U.S. terminology standard for clinical drugs" },
+          ],
+          docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/rxterms/v3/doc.html",
+        },
+        conditions: {
+          name: "Medical Conditions Lookup",
+          apiName: "API for Medical Conditions",
+          version: conditionsVersion,
+          versionLabel: "Data version",
+          sources: [
+            { name: "Medical Conditions List", provider: "Derived from Regenstrief Institute's Medical Gopher program" },
+          ],
+          docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/conditions/v3/doc.html",
+        },
+      });
+    } catch (error) {
+      console.error("Healthcare lookups version fetch error:", error);
+      res.status(500).json({ error: "Failed to fetch healthcare lookup versions" });
+    }
+  });
+
   return httpServer;
 }

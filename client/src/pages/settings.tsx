@@ -5,15 +5,92 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/page-header";
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Settings as SettingsIcon,
   Bell,
   Shield,
   Database,
   Palette,
+  Stethoscope,
+  ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 
+interface DataSource {
+  name: string;
+  provider: string;
+}
+
+interface LookupInfo {
+  name: string;
+  apiName: string;
+  version: string;
+  versionLabel: string;
+  sources: DataSource[];
+  docsUrl: string;
+}
+
+interface HealthcareLookups {
+  physicians: LookupInfo;
+  prescriptions: LookupInfo;
+  conditions: LookupInfo;
+}
+
+function LookupCard({ lookup, isLoading }: { lookup?: LookupInfo; isLoading: boolean }) {
+  if (isLoading) {
+    return (
+      <div className="space-y-3 rounded-lg border p-4">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-4 w-64" />
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-48" />
+      </div>
+    );
+  }
+
+  if (!lookup) return null;
+
+  return (
+    <div className="space-y-3 rounded-lg border p-4">
+      <div className="flex items-center justify-between gap-2">
+        <h4 className="font-medium">{lookup.name}</h4>
+        <a
+          href={lookup.docsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-muted-foreground hover:text-primary transition-colors"
+          data-testid={`link-${lookup.name.toLowerCase().replace(/\s+/g, '-')}-docs`}
+        >
+          <ExternalLink className="h-4 w-4" />
+        </a>
+      </div>
+      <p className="text-sm text-muted-foreground">{lookup.apiName}</p>
+      <div className="text-sm">
+        <span className="font-medium">{lookup.versionLabel}:</span>{" "}
+        <span className="text-muted-foreground">{lookup.version}</span>
+      </div>
+      <div className="text-sm">
+        <span className="font-medium">Data Sources:</span>
+        <ul className="mt-1 space-y-1 text-muted-foreground">
+          {lookup.sources.map((source, idx) => (
+            <li key={idx} className="leading-relaxed">
+              {source.name} from {source.provider}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export default function Settings() {
+  const { data: lookups, isLoading: lookupsLoading, refetch: refetchLookups, isFetching } = useQuery<HealthcareLookups>({
+    queryKey: ["/api/healthcare-lookups/versions"],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
   return (
     <div className="p-6 lg:p-8">
       <PageHeader
@@ -177,6 +254,50 @@ export default function Settings() {
                   API key is securely stored in environment variables
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+                    <Stethoscope className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Healthcare Data Lookups</CardTitle>
+                    <CardDescription>
+                      External healthcare data sources used for lookups
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => refetchLookups()}
+                  disabled={isFetching}
+                  data-testid="button-refresh-lookups"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <LookupCard lookup={lookups?.physicians} isLoading={lookupsLoading} />
+              <LookupCard lookup={lookups?.prescriptions} isLoading={lookupsLoading} />
+              <LookupCard lookup={lookups?.conditions} isLoading={lookupsLoading} />
+              <p className="text-xs text-muted-foreground pt-2">
+                Data provided by{" "}
+                <a
+                  href="https://clinicaltables.nlm.nih.gov/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-primary"
+                  data-testid="link-nlm-clinical-tables"
+                >
+                  NLM Clinical Table Search Service
+                </a>
+              </p>
             </CardContent>
           </Card>
         </div>
