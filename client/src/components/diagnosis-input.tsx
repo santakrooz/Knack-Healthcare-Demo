@@ -81,7 +81,7 @@ export function DiagnosisInput({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, diagnoses]);
+  }, [inputValue, value]);
 
   const addDiagnosis = (diagnosis: string) => {
     const trimmed = diagnosis.trim();

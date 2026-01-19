@@ -78,7 +78,7 @@ export function MedicalConditionsInput({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, conditions]);
+  }, [inputValue, value]);
 
   const addCondition = (condition: string) => {
     const trimmed = condition.trim();

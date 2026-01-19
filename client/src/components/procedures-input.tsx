@@ -81,7 +81,7 @@ export function ProceduresInput({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [inputValue, procedures]);
+  }, [inputValue, value]);
 
   const addProcedure = (procedure: string) => {
     const trimmed = procedure.trim();

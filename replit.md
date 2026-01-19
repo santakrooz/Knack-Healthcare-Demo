@@ -48,7 +48,7 @@ The server acts as a proxy layer between the React frontend and the Knack API, h
 | object_2 | Patients | field_6 (name), field_7 (email), field_44 (phone), field_9 (status), field_46 (DOB), field_47 (medical history) |
 | object_3 | Staff | field_11 (name), field_12 (email), field_66 (role), field_72 (specialty) |
 | object_4 | New Patient Forms | (intake forms) |
-| object_5 | Appointments | field_17 (date), field_18 (status), field_19 (preferred time), field_20 (reason), field_21 (scheduled date), field_70 (patient), field_71 (provider), field_99 (referring physician) |
+| object_5 | Appointments | field_17 (date), field_18 (status), field_19 (preferred time), field_20 (reason), field_21 (scheduled date), field_70 (patient), field_71 (provider), field_99 (referring physician), field_100 (diagnosis - ICD-10-CM codes), field_101 (procedures - HCPCS codes) |
 | object_6 | Prescriptions | field_80 (medication), field_24 (instructions), field_25 (issue date), field_26 (expiration), field_27 (refills), field_28 (status), field_75 (patient), field_76 (provider) |
 | object_7 | Prescription Refill Requests | field_29 (request date), field_30 (status), field_74 (patient), field_77 (approved by), field_78 (prescriptions) |
 
