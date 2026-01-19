@@ -11,6 +11,7 @@ import {
   Edit,
   ClipboardList,
   Scissors,
+  Activity,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,9 +77,11 @@ export default function AppointmentDetails() {
   const reason = appointment.field_20 || "";
   const referringPhysician = appointment.field_99 || "";
   const diagnosis = appointment.field_100 || "";
+  const phenotypes = appointment.field_102 || "";
   const procedures = appointment.field_101 || "";
   
   const diagnosisList = parseListField(diagnosis);
+  const phenotypesList = parseListField(phenotypes);
   const proceduresList = parseListField(procedures);
 
   return (
@@ -206,6 +209,31 @@ export default function AppointmentDetails() {
                     data-testid={`diagnosis-badge-${index}`}
                   >
                     {diag}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {phenotypesList.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5 text-pink-600" />
+                Phenotypes (Symptoms)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {phenotypesList.map((phenotype, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-sm"
+                    data-testid={`phenotype-badge-${index}`}
+                  >
+                    {phenotype}
                   </Badge>
                 ))}
               </div>

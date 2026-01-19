@@ -37,6 +37,7 @@ interface HealthcareLookups {
   prescriptions: LookupInfo;
   conditions: LookupInfo;
   diagnosis: LookupInfo;
+  phenotypes: LookupInfo;
   procedures: LookupInfo;
 }
 
@@ -289,6 +290,7 @@ export default function Settings() {
               <LookupCard lookup={lookups?.prescriptions} isLoading={lookupsLoading} />
               <LookupCard lookup={lookups?.conditions} isLoading={lookupsLoading} />
               <LookupCard lookup={lookups?.diagnosis} isLoading={lookupsLoading} />
+              <LookupCard lookup={lookups?.phenotypes} isLoading={lookupsLoading} />
               <LookupCard lookup={lookups?.procedures} isLoading={lookupsLoading} />
               <p className="text-xs text-muted-foreground pt-2">
                 Data provided by{" "}

@@ -271,13 +271,17 @@ export interface Appointment {
   field_99?: string;
   field_99_raw?: string;
   
-  // Diagnosis - field_100 (ICD-10-CM codes/freeform, comma-separated)
+  // Diagnosis - field_100 (ICD-10-CM codes/freeform)
   field_100?: string;
   field_100_raw?: string;
   
-  // Procedures - field_101 (HCPCS codes/freeform, comma-separated)
+  // Procedures - field_101 (HCPCS codes/freeform)
   field_101?: string;
   field_101_raw?: string;
+  
+  // Phenotypes/Symptoms - field_102 (HPO codes/freeform)
+  field_102?: string;
+  field_102_raw?: string;
 }
 
 // Diagnosis type - object_5

@@ -454,20 +454,23 @@ export async function registerRoutes(
         conditionsDocsRes,
         icd10cmVersionRes,
         hcpcsVersionRes,
+        hpoDocsRes,
       ] = await Promise.all([
         fetch("https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/api/rxterms/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/apidoc/conditions/v3/doc.html"),
         fetch("https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/data_version"),
+        fetch("https://clinicaltables.nlm.nih.gov/apidoc/hpo/v3/doc.html"),
       ]);
 
-      const [npiVersionText, rxtermsVersionText, conditionsHtml, icd10cmVersionText, hcpcsVersionText] = await Promise.all([
+      const [npiVersionText, rxtermsVersionText, conditionsHtml, icd10cmVersionText, hcpcsVersionText, hpoHtml] = await Promise.all([
         npiVersionRes.text(),
         rxtermsVersionRes.text(),
         conditionsDocsRes.text(),
         icd10cmVersionRes.text(),
         hcpcsVersionRes.text(),
+        hpoDocsRes.text(),
       ]);
 
       // Extract version strings
@@ -479,6 +482,10 @@ export async function registerRoutes(
       // Conditions: Extract from download link "cond_proc_download-2025-10-01.json.zip"
       const conditionsVersionMatch = conditionsHtml.match(/cond_proc_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
       const conditionsVersion = conditionsVersionMatch ? conditionsVersionMatch[1] : "Unknown";
+
+      // HPO: Extract version from documentation page
+      const hpoVersionMatch = hpoHtml.match(/hpo_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
+      const hpoVersion = hpoVersionMatch ? hpoVersionMatch[1] : "Unknown";
 
       res.json({
         physicians: {
@@ -532,6 +539,16 @@ export async function registerRoutes(
             { name: "HCPCS (Healthcare Common Procedure Coding System)", provider: "CMS (Centers for Medicare & Medicaid Services)" },
           ],
           docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/hcpcs/v3/doc.html",
+        },
+        phenotypes: {
+          name: "Phenotypes (Symptoms) Lookup",
+          apiName: "API for Human Phenotype Ontology (HPO)",
+          version: hpoVersion,
+          versionLabel: "HPO version",
+          sources: [
+            { name: "Human Phenotype Ontology (HPO)", provider: "HPO Consortium - Standardized vocabulary for phenotypic abnormalities" },
+          ],
+          docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/hpo/v3/doc.html",
         },
       });
     } catch (error) {
