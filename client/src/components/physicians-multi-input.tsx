@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, Stethoscope, X } from "lucide-react";
 
 interface PhysicianResult {
@@ -32,7 +32,7 @@ export function PhysiciansMultiInput({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Derive physicians from the value prop to avoid sync issues
-  const physicians = value ? value.split(",").map(p => p.trim()).filter(Boolean) : [];
+  const physicians = parseListField(value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -99,7 +99,7 @@ export function PhysiciansMultiInput({
     if (!trimmed || physicians.includes(trimmed)) return;
     
     const newPhysicians = [...physicians, trimmed];
-    onChange(newPhysicians.join(", "));
+    onChange(serializeListField(newPhysicians));
     setInputValue("");
     setSuggestions([]);
     setIsOpen(false);
@@ -107,7 +107,7 @@ export function PhysiciansMultiInput({
 
   const removePhysician = (index: number) => {
     const newPhysicians = physicians.filter((_, i) => i !== index);
-    onChange(newPhysicians.join(", "));
+    onChange(serializeListField(newPhysicians));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

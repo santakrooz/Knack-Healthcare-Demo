@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, ClipboardList, X } from "lucide-react";
 
 interface DiagnosisInputProps {
@@ -28,7 +28,7 @@ export function DiagnosisInput({
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const diagnoses = value ? value.split(",").map(d => d.trim()).filter(Boolean) : [];
+  const diagnoses = parseListField(value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,7 +88,7 @@ export function DiagnosisInput({
     if (!trimmed || diagnoses.includes(trimmed)) return;
     
     const newDiagnoses = [...diagnoses, trimmed];
-    onChange(newDiagnoses.join(", "));
+    onChange(serializeListField(newDiagnoses));
     setInputValue("");
     setSuggestions([]);
     setIsOpen(false);
@@ -96,7 +96,7 @@ export function DiagnosisInput({
 
   const removeDiagnosis = (index: number) => {
     const newDiagnoses = diagnoses.filter((_, i) => i !== index);
-    onChange(newDiagnoses.join(", "));
+    onChange(serializeListField(newDiagnoses));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

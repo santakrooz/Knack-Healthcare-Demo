@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, Stethoscope, X } from "lucide-react";
 
 interface MedicalConditionsInputProps {
@@ -24,7 +24,7 @@ export function MedicalConditionsInput({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Derive conditions from the value prop to avoid sync issues
-  const conditions = value ? value.split(",").map(c => c.trim()).filter(Boolean) : [];
+  const conditions = parseListField(value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -85,7 +85,7 @@ export function MedicalConditionsInput({
     if (!trimmed || conditions.includes(trimmed)) return;
     
     const newConditions = [...conditions, trimmed];
-    onChange(newConditions.join(", "));
+    onChange(serializeListField(newConditions));
     setInputValue("");
     setSuggestions([]);
     setIsOpen(false);
@@ -93,7 +93,7 @@ export function MedicalConditionsInput({
 
   const removeCondition = (index: number) => {
     const newConditions = conditions.filter((_, i) => i !== index);
-    onChange(newConditions.join(", "));
+    onChange(serializeListField(newConditions));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

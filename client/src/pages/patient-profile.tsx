@@ -22,6 +22,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import type { Patient, Appointment, Prescription, KnackRecordsResponse, KnackConnectionField } from "@shared/schema";
 import { formatKnackDate, formatKnackTime, getPatientName as schemaGetPatientName } from "@shared/schema";
+import { parseListField } from "@/lib/utils";
 
 function getPatientName(patient: Patient): string {
   if (patient.field_6_raw?.full) return patient.field_6_raw.full;
@@ -252,12 +253,12 @@ export default function PatientProfile() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {otherPhysicians.split(",").map((physician, index) => (
+                  {parseListField(otherPhysicians).map((physician, index) => (
                     <div
                       key={index}
                       className="px-3 py-1.5 rounded-md bg-muted text-sm"
                     >
-                      {physician.trim()}
+                      {physician}
                     </div>
                   ))}
                 </div>

@@ -19,6 +19,7 @@ import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import type { Appointment } from "@shared/schema";
 import { getPatientName, getProviderName, formatKnackDate, formatKnackTime } from "@shared/schema";
+import { parseListField } from "@/lib/utils";
 
 export default function AppointmentDetails() {
   const [, params] = useRoute("/appointments/:id");
@@ -77,8 +78,8 @@ export default function AppointmentDetails() {
   const diagnosis = appointment.field_100 || "";
   const procedures = appointment.field_101 || "";
   
-  const diagnosisList = diagnosis ? diagnosis.split(",").map(d => d.trim()).filter(Boolean) : [];
-  const proceduresList = procedures ? procedures.split(",").map(p => p.trim()).filter(Boolean) : [];
+  const diagnosisList = parseListField(diagnosis);
+  const proceduresList = parseListField(procedures);
 
   return (
     <div className="p-6 lg:p-8">

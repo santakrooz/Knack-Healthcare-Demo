@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, Scissors, X } from "lucide-react";
 
 interface ProceduresInputProps {
@@ -28,7 +28,7 @@ export function ProceduresInput({
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const procedures = value ? value.split(",").map(p => p.trim()).filter(Boolean) : [];
+  const procedures = parseListField(value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -88,7 +88,7 @@ export function ProceduresInput({
     if (!trimmed || procedures.includes(trimmed)) return;
     
     const newProcedures = [...procedures, trimmed];
-    onChange(newProcedures.join(", "));
+    onChange(serializeListField(newProcedures));
     setInputValue("");
     setSuggestions([]);
     setIsOpen(false);
@@ -96,7 +96,7 @@ export function ProceduresInput({
 
   const removeProcedure = (index: number) => {
     const newProcedures = procedures.filter((_, i) => i !== index);
-    onChange(newProcedures.join(", "));
+    onChange(serializeListField(newProcedures));
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
