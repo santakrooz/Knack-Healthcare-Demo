@@ -454,23 +454,23 @@ export async function registerRoutes(
         conditionsDocsRes,
         icd10cmVersionRes,
         hcpcsVersionRes,
-        hpoDocsRes,
+        hpoVersionRes,
       ] = await Promise.all([
         fetch("https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/api/rxterms/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/apidoc/conditions/v3/doc.html"),
         fetch("https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/data_version"),
-        fetch("https://clinicaltables.nlm.nih.gov/apidoc/hpo/v3/doc.html"),
+        fetch("https://clinicaltables.nlm.nih.gov/api/hpo/v3/data_version"),
       ]);
 
-      const [npiVersionText, rxtermsVersionText, conditionsHtml, icd10cmVersionText, hcpcsVersionText, hpoHtml] = await Promise.all([
+      const [npiVersionText, rxtermsVersionText, conditionsHtml, icd10cmVersionText, hcpcsVersionText, hpoVersionText] = await Promise.all([
         npiVersionRes.text(),
         rxtermsVersionRes.text(),
         conditionsDocsRes.text(),
         icd10cmVersionRes.text(),
         hcpcsVersionRes.text(),
-        hpoDocsRes.text(),
+        hpoVersionRes.text(),
       ]);
 
       // Extract version strings
@@ -478,14 +478,11 @@ export async function registerRoutes(
       const rxtermsVersion = rxtermsVersionRes.ok ? rxtermsVersionText.trim() : "Unknown";
       const icd10cmVersion = icd10cmVersionRes.ok ? icd10cmVersionText.trim() : "Unknown";
       const hcpcsVersion = hcpcsVersionRes.ok ? hcpcsVersionText.trim() : "Unknown";
+      const hpoVersion = hpoVersionRes.ok ? hpoVersionText.trim() : "Unknown";
 
       // Conditions: Extract from download link "cond_proc_download-2025-10-01.json.zip"
       const conditionsVersionMatch = conditionsHtml.match(/cond_proc_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
       const conditionsVersion = conditionsVersionMatch ? conditionsVersionMatch[1] : "Unknown";
-
-      // HPO: Extract version from documentation page ("Data version: YYYY-MM-DD")
-      const hpoVersionMatch = hpoHtml.match(/Data version:\s*(\d{4}-\d{2}-\d{2})/i);
-      const hpoVersion = hpoVersionMatch ? hpoVersionMatch[1] : "Unknown";
 
       res.json({
         physicians: {
