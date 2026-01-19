@@ -320,18 +320,6 @@ function AppointmentEditForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="diagnosis" className="flex items-center gap-2">
-                <ClipboardList className="h-4 w-4" />
-                Diagnosis
-              </Label>
-              <DiagnosisInput
-                value={formData.diagnosis}
-                onChange={(value) => setFormData({ ...formData, diagnosis: value })}
-                placeholder="Search ICD-10-CM codes or enter diagnosis..."
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="phenotypes" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 Phenotypes (Symptoms)
@@ -340,6 +328,18 @@ function AppointmentEditForm({
                 value={formData.phenotypes}
                 onChange={(value) => setFormData({ ...formData, phenotypes: value })}
                 placeholder="Search HPO codes or enter symptoms..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="diagnosis" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Diagnosis
+              </Label>
+              <DiagnosisInput
+                value={formData.diagnosis}
+                onChange={(value) => setFormData({ ...formData, diagnosis: value })}
+                placeholder="Search ICD-10-CM codes or enter diagnosis..."
               />
             </div>
 

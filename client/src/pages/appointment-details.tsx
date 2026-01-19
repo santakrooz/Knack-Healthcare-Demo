@@ -191,31 +191,6 @@ export default function AppointmentDetails() {
           </Card>
         )}
 
-        {diagnosisList.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-orange-600" />
-                Diagnosis
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {diagnosisList.map((diag, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="text-sm"
-                    data-testid={`diagnosis-badge-${index}`}
-                  >
-                    {diag}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {phenotypesList.length > 0 && (
           <Card>
             <CardHeader>
@@ -234,6 +209,31 @@ export default function AppointmentDetails() {
                     data-testid={`phenotype-badge-${index}`}
                   >
                     {phenotype}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {diagnosisList.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-orange-600" />
+                Diagnosis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {diagnosisList.map((diag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-sm"
+                    data-testid={`diagnosis-badge-${index}`}
+                  >
+                    {diag}
                   </Badge>
                 ))}
               </div>
