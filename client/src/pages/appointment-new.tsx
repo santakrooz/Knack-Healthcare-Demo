@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowLeft, Calendar, Clock, User, UserCheck, UserPlus, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, UserCheck, UserPlus, FileText, ClipboardList, Scissors } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { NPIPhysicianAutocomplete } from "@/components/npi-physician-autocomplete";
+import { DiagnosisInput } from "@/components/diagnosis-input";
+import { ProceduresInput } from "@/components/procedures-input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Account, KnackRecordsResponse } from "@shared/schema";
 
@@ -41,6 +43,8 @@ export default function AppointmentNew() {
     time: "",
     status: "Pending",
     reason: "",
+    diagnosis: "",
+    procedures: "",
   });
 
   const { data: patientsData } = useQuery<KnackRecordsResponse<Patient>>({
@@ -74,6 +78,12 @@ export default function AppointmentNew() {
       }
       if (data.referringPhysician) {
         payload.field_99 = data.referringPhysician;
+      }
+      if (data.diagnosis) {
+        payload.field_100 = data.diagnosis;
+      }
+      if (data.procedures) {
+        payload.field_101 = data.procedures;
       }
       return apiRequest("POST", "/api/appointments", payload);
     },
@@ -269,6 +279,30 @@ export default function AppointmentNew() {
                 onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                 rows={4}
                 data-testid="input-reason"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="diagnosis" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Diagnosis
+              </Label>
+              <DiagnosisInput
+                value={formData.diagnosis}
+                onChange={(value) => setFormData({ ...formData, diagnosis: value })}
+                placeholder="Search ICD-10-CM codes or enter diagnosis..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="procedures" className="flex items-center gap-2">
+                <Scissors className="h-4 w-4" />
+                Procedures
+              </Label>
+              <ProceduresInput
+                value={formData.procedures}
+                onChange={(value) => setFormData({ ...formData, procedures: value })}
+                placeholder="Search HCPCS codes or enter procedures..."
               />
             </div>
 

@@ -36,6 +36,8 @@ interface HealthcareLookups {
   physicians: LookupInfo;
   prescriptions: LookupInfo;
   conditions: LookupInfo;
+  diagnosis: LookupInfo;
+  procedures: LookupInfo;
 }
 
 function LookupCard({ lookup, isLoading }: { lookup?: LookupInfo; isLoading: boolean }) {
@@ -286,6 +288,8 @@ export default function Settings() {
               <LookupCard lookup={lookups?.physicians} isLoading={lookupsLoading} />
               <LookupCard lookup={lookups?.prescriptions} isLoading={lookupsLoading} />
               <LookupCard lookup={lookups?.conditions} isLoading={lookupsLoading} />
+              <LookupCard lookup={lookups?.diagnosis} isLoading={lookupsLoading} />
+              <LookupCard lookup={lookups?.procedures} isLoading={lookupsLoading} />
               <p className="text-xs text-muted-foreground pt-2">
                 Data provided by{" "}
                 <a

@@ -9,9 +9,12 @@ import {
   UserPlus,
   FileText,
   Edit,
+  ClipboardList,
+  Scissors,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import type { Appointment } from "@shared/schema";
@@ -71,6 +74,11 @@ export default function AppointmentDetails() {
   const status = appointment.field_18 || "Pending";
   const reason = appointment.field_20 || "";
   const referringPhysician = appointment.field_99 || "";
+  const diagnosis = appointment.field_100 || "";
+  const procedures = appointment.field_101 || "";
+  
+  const diagnosisList = diagnosis ? diagnosis.split(",").map(d => d.trim()).filter(Boolean) : [];
+  const proceduresList = procedures ? procedures.split(",").map(p => p.trim()).filter(Boolean) : [];
 
   return (
     <div className="p-6 lg:p-8">
@@ -175,6 +183,56 @@ export default function AppointmentDetails() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground whitespace-pre-wrap">{reason}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {diagnosisList.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-orange-600" />
+                Diagnosis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {diagnosisList.map((diag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-sm"
+                    data-testid={`diagnosis-badge-${index}`}
+                  >
+                    {diag}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {proceduresList.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Scissors className="h-5 w-5 text-teal-600" />
+                Procedures
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {proceduresList.map((proc, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="text-sm"
+                    data-testid={`procedure-badge-${index}`}
+                  >
+                    {proc}
+                  </Badge>
+                ))}
+              </div>
             </CardContent>
           </Card>
         )}

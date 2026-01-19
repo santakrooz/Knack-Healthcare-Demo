@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation, useRoute } from "wouter";
-import { ArrowLeft, Calendar, Clock, User, UserCheck, UserPlus, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, UserCheck, UserPlus, FileText, Loader2, ClipboardList, Scissors } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/page-header";
 import { NPIPhysicianAutocomplete } from "@/components/npi-physician-autocomplete";
+import { DiagnosisInput } from "@/components/diagnosis-input";
+import { ProceduresInput } from "@/components/procedures-input";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Account, Patient, Appointment, KnackRecordsResponse } from "@shared/schema";
 
@@ -29,6 +31,8 @@ function getInitialFormData(appointmentData: Appointment | undefined) {
       time: "",
       status: "",
       reason: "",
+      diagnosis: "",
+      procedures: "",
     };
   }
   return {
@@ -38,6 +42,8 @@ function getInitialFormData(appointmentData: Appointment | undefined) {
     time: appointmentData.field_19_raw || appointmentData.field_19 || "",
     status: appointmentData.field_18_raw || appointmentData.field_18 || "Pending",
     reason: appointmentData.field_20_raw || appointmentData.field_20 || "",
+    diagnosis: appointmentData.field_100_raw || appointmentData.field_100 || "",
+    procedures: appointmentData.field_101_raw || appointmentData.field_101 || "",
   };
 }
 
@@ -114,6 +120,12 @@ function AppointmentEditForm({
       }
       if (data.referringPhysician) {
         payload.field_99 = data.referringPhysician;
+      }
+      if (data.diagnosis) {
+        payload.field_100 = data.diagnosis;
+      }
+      if (data.procedures) {
+        payload.field_101 = data.procedures;
       }
       return apiRequest("PUT", `/api/appointments/${appointmentId}`, payload);
     },
@@ -298,6 +310,30 @@ function AppointmentEditForm({
                 onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                 rows={4}
                 data-testid="input-reason"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="diagnosis" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Diagnosis
+              </Label>
+              <DiagnosisInput
+                value={formData.diagnosis}
+                onChange={(value) => setFormData({ ...formData, diagnosis: value })}
+                placeholder="Search ICD-10-CM codes or enter diagnosis..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="procedures" className="flex items-center gap-2">
+                <Scissors className="h-4 w-4" />
+                Procedures
+              </Label>
+              <ProceduresInput
+                value={formData.procedures}
+                onChange={(value) => setFormData({ ...formData, procedures: value })}
+                placeholder="Search HCPCS codes or enter procedures..."
               />
             </div>
 

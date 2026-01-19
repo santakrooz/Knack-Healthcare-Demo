@@ -447,23 +447,34 @@ export async function registerRoutes(
   // Healthcare Data Lookups - fetch version info from NLM Clinical Tables
   app.get("/api/healthcare-lookups/versions", async (_req: Request, res: ExpressResponse) => {
     try {
-      // Fetch version info from official API endpoints (NPI, RxTerms have dedicated endpoints)
-      // Conditions doesn't have a version endpoint, so we scrape from the docs page
-      const [npiVersionRes, rxtermsVersionRes, conditionsDocsRes] = await Promise.all([
+      // Fetch version info from official API endpoints
+      const [
+        npiVersionRes,
+        rxtermsVersionRes,
+        conditionsDocsRes,
+        icd10cmVersionRes,
+        hcpcsVersionRes,
+      ] = await Promise.all([
         fetch("https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/api/rxterms/v3/data_version"),
         fetch("https://clinicaltables.nlm.nih.gov/apidoc/conditions/v3/doc.html"),
+        fetch("https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/data_version"),
+        fetch("https://clinicaltables.nlm.nih.gov/api/hcpcs/v3/data_version"),
       ]);
 
-      const [npiVersionText, rxtermsVersionText, conditionsHtml] = await Promise.all([
+      const [npiVersionText, rxtermsVersionText, conditionsHtml, icd10cmVersionText, hcpcsVersionText] = await Promise.all([
         npiVersionRes.text(),
         rxtermsVersionRes.text(),
         conditionsDocsRes.text(),
+        icd10cmVersionRes.text(),
+        hcpcsVersionRes.text(),
       ]);
 
-      // NPI and RxTerms return plain text version strings
+      // Extract version strings
       const npiVersion = npiVersionRes.ok ? npiVersionText.trim() : "Unknown";
       const rxtermsVersion = rxtermsVersionRes.ok ? rxtermsVersionText.trim() : "Unknown";
+      const icd10cmVersion = icd10cmVersionRes.ok ? icd10cmVersionText.trim() : "Unknown";
+      const hcpcsVersion = hcpcsVersionRes.ok ? hcpcsVersionText.trim() : "Unknown";
 
       // Conditions: Extract from download link "cond_proc_download-2025-10-01.json.zip"
       const conditionsVersionMatch = conditionsHtml.match(/cond_proc_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
@@ -501,6 +512,26 @@ export async function registerRoutes(
             { name: "Medical Conditions List", provider: "Derived from Regenstrief Institute's Medical Gopher program" },
           ],
           docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/conditions/v3/doc.html",
+        },
+        diagnosis: {
+          name: "Diagnosis Lookup",
+          apiName: "API for ICD-10-CM",
+          version: icd10cmVersion,
+          versionLabel: "ICD-10-CM version",
+          sources: [
+            { name: "ICD-10-CM (International Classification of Diseases)", provider: "CMS (Centers for Medicare & Medicaid Services)" },
+          ],
+          docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/icd10cm/v3/doc.html",
+        },
+        procedures: {
+          name: "Procedures Lookup",
+          apiName: "API for HCPCS",
+          version: hcpcsVersion,
+          versionLabel: "HCPCS version",
+          sources: [
+            { name: "HCPCS (Healthcare Common Procedure Coding System)", provider: "CMS (Centers for Medicare & Medicaid Services)" },
+          ],
+          docsUrl: "https://clinicaltables.nlm.nih.gov/apidoc/hcpcs/v3/doc.html",
         },
       });
     } catch (error) {

@@ -270,6 +270,14 @@ export interface Appointment {
   // Referring Physician - field_99
   field_99?: string;
   field_99_raw?: string;
+  
+  // Diagnosis - field_100 (ICD-10-CM codes/freeform, comma-separated)
+  field_100?: string;
+  field_100_raw?: string;
+  
+  // Procedures - field_101 (HCPCS codes/freeform, comma-separated)
+  field_101?: string;
+  field_101_raw?: string;
 }
 
 // Diagnosis type - object_5
