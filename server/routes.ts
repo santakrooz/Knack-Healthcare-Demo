@@ -483,8 +483,8 @@ export async function registerRoutes(
       const conditionsVersionMatch = conditionsHtml.match(/cond_proc_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
       const conditionsVersion = conditionsVersionMatch ? conditionsVersionMatch[1] : "Unknown";
 
-      // HPO: Extract version from documentation page
-      const hpoVersionMatch = hpoHtml.match(/hpo_download-(\d{4}-\d{2}-\d{2})\.json\.zip/i);
+      // HPO: Extract version from documentation page ("Data version: YYYY-MM-DD")
+      const hpoVersionMatch = hpoHtml.match(/Data version:\s*(\d{4}-\d{2}-\d{2})/i);
       const hpoVersion = hpoVersionMatch ? hpoVersionMatch[1] : "Unknown";
 
       res.json({
