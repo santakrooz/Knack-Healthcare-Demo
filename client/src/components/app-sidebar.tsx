@@ -160,6 +160,17 @@ export function AppSidebar() {
             </span>
           </div>
         </div>
+        <div className="mt-3 text-xs text-muted-foreground">
+          Powered by{" "}
+          <a 
+            href="https://www.knack.com" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-foreground hover:underline"
+          >
+            Knack
+          </a>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
