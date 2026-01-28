@@ -138,6 +138,14 @@ export default function Settings() {
     };
   });
 
+  const [diagnosisSettings, setDiagnosisSettings] = useState(() => {
+    const saved = localStorage.getItem("medportal_diagnosis_settings");
+    return saved ? JSON.parse(saved) : {
+      showCode: true, // ICD-10 code display (on by default since it's an ICD-10 lookup)
+      codePosition: "prefix", // "prefix" = "E11.9 - Description", "append" = "Description [E11.9]"
+    };
+  });
+
   useEffect(() => {
     localStorage.setItem("medportal_show_rxcui", showRxcui.toString());
   }, [showRxcui]);
@@ -150,8 +158,16 @@ export default function Settings() {
     localStorage.setItem("medportal_condition_settings", JSON.stringify(conditionSettings));
   }, [conditionSettings]);
 
+  useEffect(() => {
+    localStorage.setItem("medportal_diagnosis_settings", JSON.stringify(diagnosisSettings));
+  }, [diagnosisSettings]);
+
   const updateConditionSetting = (key: string, value: boolean | string) => {
     setConditionSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
+  };
+
+  const updateDiagnosisSetting = (key: string, value: boolean | string) => {
+    setDiagnosisSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
   };
 
   const updatePhysicianSetting = (key: string, value: boolean) => {
@@ -472,6 +488,40 @@ export default function Settings() {
                 lookup={lookups?.diagnosis} 
                 isLoading={lookupsLoading}
                 icon={<FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                extraContent={
+                  <div className="space-y-3 pt-2 border-t mt-3">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Code display options:
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Show ICD-10-CM Code</Label>
+                        <Switch 
+                          checked={diagnosisSettings.showCode}
+                          onCheckedChange={(v) => updateDiagnosisSetting("showCode", v)}
+                          data-testid="switch-diagnosis-code"
+                        />
+                      </div>
+                      {diagnosisSettings.showCode && (
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">Code Position</Label>
+                          <Select
+                            value={diagnosisSettings.codePosition}
+                            onValueChange={(v) => updateDiagnosisSetting("codePosition", v)}
+                          >
+                            <SelectTrigger className="h-8" data-testid="select-diagnosis-code-position">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="prefix">Prefix (E11.9 - Description)</SelectItem>
+                              <SelectItem value="append">Append (Description [E11.9])</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                }
               />
               <LookupCard 
                 lookup={lookups?.phenotypes} 

@@ -4,6 +4,35 @@ import { Badge } from "@/components/ui/badge";
 import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, ClipboardList, X } from "lucide-react";
 
+interface DiagnosisSettings {
+  showCode: boolean;
+  codePosition: "prefix" | "append";
+}
+
+function getDiagnosisSettings(): DiagnosisSettings {
+  try {
+    const saved = localStorage.getItem("medportal_diagnosis_settings");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {}
+  return { showCode: true, codePosition: "prefix" };
+}
+
+function formatDiagnosis(code: string, description: string, settings?: DiagnosisSettings): string {
+  const s = settings || getDiagnosisSettings();
+  
+  if (!s.showCode) {
+    return description;
+  }
+  
+  if (s.codePosition === "prefix") {
+    return `${code} - ${description}`;
+  } else {
+    return `${description} [${code}]`;
+  }
+}
+
 interface DiagnosisInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -13,7 +42,7 @@ interface DiagnosisInputProps {
 
 interface ICD10Result {
   code: string;
-  name: string;
+  description: string;
 }
 
 export function DiagnosisInput({
@@ -57,16 +86,18 @@ export function DiagnosisInput({
         
         const codes = data[1] || [];
         const displayData = data[3] || [];
+        const settings = getDiagnosisSettings();
         
         const results: ICD10Result[] = [];
         for (let i = 0; i < codes.length; i++) {
           const code = codes[i];
           const displayArr = displayData[i];
-          const name = Array.isArray(displayArr) && displayArr.length > 1 ? displayArr[1] : displayArr?.[0] || code;
-          const displayText = `${code} - ${name}`;
+          const description = Array.isArray(displayArr) && displayArr.length > 1 ? displayArr[1] : displayArr?.[0] || code;
+          const formattedText = formatDiagnosis(code, description, settings);
           
-          if (!diagnoses.includes(displayText)) {
-            results.push({ code, name: displayText });
+          // Check if already added (match by code or formatted text)
+          if (!diagnoses.some(d => d.includes(code) || d === formattedText)) {
+            results.push({ code, description });
           }
         }
         
@@ -115,7 +146,9 @@ export function DiagnosisInput({
   };
 
   const handleSelectSuggestion = (suggestion: ICD10Result) => {
-    addDiagnosis(suggestion.name);
+    const settings = getDiagnosisSettings();
+    const formatted = formatDiagnosis(suggestion.code, suggestion.description, settings);
+    addDiagnosis(formatted);
   };
 
   return (
@@ -165,16 +198,24 @@ export function DiagnosisInput({
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
           <ul className="max-h-60 overflow-auto py-1">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                onClick={() => handleSelectSuggestion(suggestion)}
-                className="cursor-pointer px-3 py-2 text-sm hover-elevate"
-                data-testid={`suggestion-diagnosis-${index}`}
-              >
-                {suggestion.name}
-              </li>
-            ))}
+            {suggestions.map((suggestion, index) => {
+              const settings = getDiagnosisSettings();
+              return (
+                <li
+                  key={index}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  className="cursor-pointer px-3 py-2 text-sm hover-elevate"
+                  data-testid={`suggestion-diagnosis-${index}`}
+                >
+                  <div className="font-medium">{suggestion.description}</div>
+                  {settings.showCode && (
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      ICD-10: {suggestion.code}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
