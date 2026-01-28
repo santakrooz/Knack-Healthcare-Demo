@@ -65,7 +65,7 @@ function getInitialFormData(patientData: Patient | undefined) {
     dateOfBirth: formatDobForInput(dobStr),
     status: patientData.field_9_raw || patientData.field_9 || "Active",
     medicalHistory: patientData.field_47_raw || patientData.field_47 || "",
-    otherPhysicians: patientData.field_48_raw || patientData.field_48 || "",
+    otherPhysicians: typeof patientData.field_61_raw === 'string' ? patientData.field_61_raw : (patientData.field_61 || ""),
   };
 }
 
@@ -138,7 +138,7 @@ function PatientEditForm({
         payload.field_47 = data.medicalHistory;
       }
       if (data.otherPhysicians) {
-        payload.field_48 = data.otherPhysicians;
+        payload.field_61 = data.otherPhysicians;
       }
       return apiRequest("PUT", `/api/patients/${patientId}`, payload);
     },

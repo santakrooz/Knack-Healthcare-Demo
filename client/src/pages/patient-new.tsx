@@ -57,7 +57,7 @@ export default function PatientNew() {
         payload.field_47 = data.medicalNotes;
       }
       if (data.otherPhysicians) {
-        payload.field_48 = data.otherPhysicians;
+        payload.field_61 = data.otherPhysicians;
       }
       return apiRequest("POST", "/api/patients", payload);
     },

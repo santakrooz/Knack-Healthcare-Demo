@@ -66,7 +66,7 @@ function getMedicalNotes(patient: Patient): string {
 }
 
 function getOtherPhysicians(patient: Patient): string {
-  return patient.field_48 || "";
+  return patient.field_61 || "";
 }
 
 export default function PatientProfile() {
