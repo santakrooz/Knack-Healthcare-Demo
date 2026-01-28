@@ -4,6 +4,61 @@ import { Badge } from "@/components/ui/badge";
 import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, Stethoscope, X } from "lucide-react";
 
+interface ConditionSettings {
+  showIcd10: boolean;
+  showIcd9: boolean;
+  codePosition: "prefix" | "append";
+}
+
+function getConditionSettings(): ConditionSettings {
+  try {
+    const saved = localStorage.getItem("medportal_condition_settings");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {}
+  return { showIcd10: false, showIcd9: false, codePosition: "append" };
+}
+
+interface ConditionSuggestion {
+  name: string;
+  icd10?: string;
+  icd9?: string;
+}
+
+function formatConditionWithCodes(
+  name: string, 
+  icd10?: string, 
+  icd9?: string, 
+  settings?: ConditionSettings
+): string {
+  const s = settings || getConditionSettings();
+  
+  if (!s.showIcd10 && !s.showIcd9) {
+    return name;
+  }
+
+  const codes: string[] = [];
+  if (s.showIcd10 && icd10) {
+    codes.push(`ICD-10: ${icd10}`);
+  }
+  if (s.showIcd9 && icd9) {
+    codes.push(`ICD-9: ${icd9}`);
+  }
+
+  if (codes.length === 0) {
+    return name;
+  }
+
+  const codeStr = codes.join(" | ");
+  
+  if (s.codePosition === "prefix") {
+    return `${codeStr} - ${name}`;
+  } else {
+    return `${name} [${codeStr}]`;
+  }
+}
+
 interface MedicalConditionsInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -18,7 +73,7 @@ export function MedicalConditionsInput({
   className,
 }: MedicalConditionsInputProps) {
   const [inputValue, setInputValue] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<ConditionSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -46,25 +101,35 @@ export function MedicalConditionsInput({
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
+        // Request extra fields for ICD codes
         const response = await fetch(
-          `https://clinicaltables.nlm.nih.gov/api/conditions/v3/search?terms=${encodeURIComponent(inputValue)}&maxList=10`
+          `https://clinicaltables.nlm.nih.gov/api/conditions/v3/search?terms=${encodeURIComponent(inputValue)}&maxList=10&ef=icd10cm_codes,icd9cm_codes`
         );
         const data = await response.json();
         
         // API response format: [count, codes, extras, display_names]
-        // Index 3 contains arrays of display strings - we want the first element of each
+        // extras (index 2) contains the extra fields we requested
         const displayNamesRaw = data[3];
+        const extras = data[2] || {};
+        const icd10Codes = extras.icd10cm_codes || [];
+        const icd9Codes = extras.icd9cm_codes || [];
         
         if (displayNamesRaw && displayNamesRaw.length > 0) {
-          // Each item in displayNamesRaw is an array, take the first element (the condition name)
-          const displayNames = displayNamesRaw.map((item: string | string[]) => 
-            Array.isArray(item) ? item[0] : item
-          ).filter(Boolean);
+          const conditionSuggestions: ConditionSuggestion[] = displayNamesRaw.map(
+            (item: string | string[], index: number) => {
+              const name = Array.isArray(item) ? item[0] : item;
+              // Get first ICD code from each array (they may have multiple)
+              const icd10 = icd10Codes[index]?.[0];
+              const icd9 = icd9Codes[index]?.[0];
+              return { name, icd10, icd9 };
+            }
+          ).filter((s: ConditionSuggestion) => s.name);
           
-          const filteredNames = displayNames.filter(
-            (name: string) => !conditions.includes(name)
+          // Filter out already selected conditions (check base name)
+          const filtered = conditionSuggestions.filter(
+            (s: ConditionSuggestion) => !conditions.some(c => c.includes(s.name) || s.name.includes(c.split(" [")[0]))
           );
-          setSuggestions(filteredNames);
+          setSuggestions(filtered);
           setIsOpen(true);
         } else {
           setSuggestions([]);
@@ -80,8 +145,8 @@ export function MedicalConditionsInput({
     return () => clearTimeout(timer);
   }, [inputValue, value]);
 
-  const addCondition = (condition: string) => {
-    const trimmed = condition.trim();
+  const addConditionText = (conditionText: string) => {
+    const trimmed = conditionText.trim();
     if (!trimmed || conditions.includes(trimmed)) return;
     
     const newConditions = [...conditions, trimmed];
@@ -104,15 +169,17 @@ export function MedicalConditionsInput({
     if (e.key === "Enter" || e.key === "," || e.key === ".") {
       e.preventDefault();
       if (inputValue.trim()) {
-        addCondition(inputValue);
+        addConditionText(inputValue);
       }
     } else if (e.key === "Backspace" && !inputValue && conditions.length > 0) {
       removeCondition(conditions.length - 1);
     }
   };
 
-  const handleSelectSuggestion = (suggestion: string) => {
-    addCondition(suggestion);
+  const handleSelectSuggestion = (suggestion: ConditionSuggestion) => {
+    const settings = getConditionSettings();
+    const formatted = formatConditionWithCodes(suggestion.name, suggestion.icd10, suggestion.icd9, settings);
+    addConditionText(formatted);
   };
 
   return (
@@ -162,16 +229,26 @@ export function MedicalConditionsInput({
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
           <ul className="max-h-60 overflow-auto py-1">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                onClick={() => handleSelectSuggestion(suggestion)}
-                className="cursor-pointer px-3 py-2 text-sm hover-elevate"
-                data-testid={`suggestion-condition-${index}`}
-              >
-                {suggestion}
-              </li>
-            ))}
+            {suggestions.map((suggestion, index) => {
+              const settings = getConditionSettings();
+              return (
+                <li
+                  key={index}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  className="cursor-pointer px-3 py-2 text-sm hover-elevate"
+                  data-testid={`suggestion-condition-${index}`}
+                >
+                  <div className="font-medium">{suggestion.name}</div>
+                  {(settings.showIcd10 || settings.showIcd9) && (suggestion.icd10 || suggestion.icd9) && (
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {settings.showIcd10 && suggestion.icd10 && <span>ICD-10: {suggestion.icd10}</span>}
+                      {settings.showIcd10 && settings.showIcd9 && suggestion.icd10 && suggestion.icd9 && <span> | </span>}
+                      {settings.showIcd9 && suggestion.icd9 && <span>ICD-9: {suggestion.icd9}</span>}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -180,7 +257,7 @@ export function MedicalConditionsInput({
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
           <div
             className="cursor-pointer px-3 py-2 text-sm hover-elevate"
-            onClick={() => addCondition(inputValue)}
+            onClick={() => addConditionText(inputValue)}
             data-testid="add-custom-condition"
           >
             <span className="text-muted-foreground">Add: </span>

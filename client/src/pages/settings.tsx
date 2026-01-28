@@ -24,6 +24,13 @@ import {
   Scissors,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataSource {
   name: string;
@@ -122,6 +129,15 @@ export default function Settings() {
     };
   });
 
+  const [conditionSettings, setConditionSettings] = useState(() => {
+    const saved = localStorage.getItem("medportal_condition_settings");
+    return saved ? JSON.parse(saved) : {
+      showIcd10: false,
+      showIcd9: false,
+      codePosition: "append", // "prefix" or "append"
+    };
+  });
+
   useEffect(() => {
     localStorage.setItem("medportal_show_rxcui", showRxcui.toString());
   }, [showRxcui]);
@@ -129,6 +145,14 @@ export default function Settings() {
   useEffect(() => {
     localStorage.setItem("medportal_physician_settings", JSON.stringify(physicianSettings));
   }, [physicianSettings]);
+
+  useEffect(() => {
+    localStorage.setItem("medportal_condition_settings", JSON.stringify(conditionSettings));
+  }, [conditionSettings]);
+
+  const updateConditionSetting = (key: string, value: boolean | string) => {
+    setConditionSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
+  };
 
   const updatePhysicianSetting = (key: string, value: boolean) => {
     setPhysicianSettings((prev: Record<string, boolean>) => ({ ...prev, [key]: value }));
@@ -401,6 +425,48 @@ export default function Settings() {
                 lookup={lookups?.conditions} 
                 isLoading={lookupsLoading}
                 icon={<HeartPulse className="h-4 w-4 text-red-600 dark:text-red-400" />}
+                extraContent={
+                  <div className="space-y-3 pt-2 border-t mt-3">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      ICD code display options:
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Show ICD-10-CM</Label>
+                        <Switch 
+                          checked={conditionSettings.showIcd10}
+                          onCheckedChange={(v) => updateConditionSetting("showIcd10", v)}
+                          data-testid="switch-condition-icd10"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Show ICD-9-CM</Label>
+                        <Switch 
+                          checked={conditionSettings.showIcd9}
+                          onCheckedChange={(v) => updateConditionSetting("showIcd9", v)}
+                          data-testid="switch-condition-icd9"
+                        />
+                      </div>
+                      {(conditionSettings.showIcd10 || conditionSettings.showIcd9) && (
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">Code Position</Label>
+                          <Select
+                            value={conditionSettings.codePosition}
+                            onValueChange={(v) => updateConditionSetting("codePosition", v)}
+                          >
+                            <SelectTrigger className="h-8" data-testid="select-code-position">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="append">Append (Condition [CODE])</SelectItem>
+                              <SelectItem value="prefix">Prefix (CODE - Condition)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                }
               />
               <LookupCard 
                 lookup={lookups?.diagnosis} 
