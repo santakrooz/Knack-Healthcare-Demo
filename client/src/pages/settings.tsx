@@ -154,6 +154,14 @@ export default function Settings() {
     };
   });
 
+  const [procedureSettings, setProcedureSettings] = useState(() => {
+    const saved = localStorage.getItem("medportal_procedure_settings");
+    return saved ? JSON.parse(saved) : {
+      showCode: true, // HCPCS code display (on by default since it's an HCPCS lookup)
+      codePosition: "prefix", // "prefix" = "99213 - Description", "append" = "Description [99213]"
+    };
+  });
+
   useEffect(() => {
     localStorage.setItem("medportal_show_rxcui", showRxcui.toString());
   }, [showRxcui]);
@@ -174,6 +182,10 @@ export default function Settings() {
     localStorage.setItem("medportal_phenotype_settings", JSON.stringify(phenotypeSettings));
   }, [phenotypeSettings]);
 
+  useEffect(() => {
+    localStorage.setItem("medportal_procedure_settings", JSON.stringify(procedureSettings));
+  }, [procedureSettings]);
+
   const updateConditionSetting = (key: string, value: boolean | string) => {
     setConditionSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
   };
@@ -184,6 +196,10 @@ export default function Settings() {
 
   const updatePhenotypeSetting = (key: string, value: boolean | string) => {
     setPhenotypeSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
+  };
+
+  const updateProcedureSetting = (key: string, value: boolean | string) => {
+    setProcedureSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
   };
 
   const updatePhysicianSetting = (key: string, value: boolean) => {
@@ -582,6 +598,40 @@ export default function Settings() {
                 lookup={lookups?.procedures} 
                 isLoading={lookupsLoading}
                 icon={<Scissors className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />}
+                extraContent={
+                  <div className="space-y-3 pt-2 border-t mt-3">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Code display options:
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Show HCPCS Code</Label>
+                        <Switch 
+                          checked={procedureSettings.showCode}
+                          onCheckedChange={(v) => updateProcedureSetting("showCode", v)}
+                          data-testid="switch-procedure-code"
+                        />
+                      </div>
+                      {procedureSettings.showCode && (
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">Code Position</Label>
+                          <Select
+                            value={procedureSettings.codePosition}
+                            onValueChange={(v) => updateProcedureSetting("codePosition", v)}
+                          >
+                            <SelectTrigger className="h-8" data-testid="select-procedure-code-position">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="prefix">Prefix (99213 - Description)</SelectItem>
+                              <SelectItem value="append">Append (Description [99213])</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                }
               />
               <p className="text-xs text-muted-foreground pt-2">
                 Data provided by{" "}

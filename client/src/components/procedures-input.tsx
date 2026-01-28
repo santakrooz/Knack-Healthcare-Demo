@@ -4,6 +4,35 @@ import { Badge } from "@/components/ui/badge";
 import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, Scissors, X } from "lucide-react";
 
+interface ProcedureSettings {
+  showCode: boolean;
+  codePosition: "prefix" | "append";
+}
+
+function getProcedureSettings(): ProcedureSettings {
+  try {
+    const saved = localStorage.getItem("medportal_procedure_settings");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {}
+  return { showCode: true, codePosition: "prefix" };
+}
+
+function formatProcedure(code: string, description: string, settings?: ProcedureSettings): string {
+  const s = settings || getProcedureSettings();
+  
+  if (!s.showCode) {
+    return description;
+  }
+  
+  if (s.codePosition === "prefix") {
+    return `${code} - ${description}`;
+  } else {
+    return `${description} [${code}]`;
+  }
+}
+
 interface ProceduresInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -57,16 +86,18 @@ export function ProceduresInput({
         
         const codes = data[1] || [];
         const displayData = data[3] || [];
+        const settings = getProcedureSettings();
         
         const results: HCPCSResult[] = [];
         for (let i = 0; i < codes.length; i++) {
           const code = codes[i];
           const displayArr = displayData[i];
           const description = Array.isArray(displayArr) && displayArr.length > 1 ? displayArr[1] : displayArr?.[0] || code;
-          const displayText = `${code} - ${description}`;
+          const formattedText = formatProcedure(code, description, settings);
           
-          if (!procedures.includes(displayText)) {
-            results.push({ code, description: displayText });
+          // Check if already added (match by code or formatted text)
+          if (!procedures.some(p => p.includes(code) || p === formattedText)) {
+            results.push({ code, description });
           }
         }
         
@@ -115,7 +146,9 @@ export function ProceduresInput({
   };
 
   const handleSelectSuggestion = (suggestion: HCPCSResult) => {
-    addProcedure(suggestion.description);
+    const settings = getProcedureSettings();
+    const formatted = formatProcedure(suggestion.code, suggestion.description, settings);
+    addProcedure(formatted);
   };
 
   return (
@@ -172,7 +205,10 @@ export function ProceduresInput({
                 className="cursor-pointer px-3 py-2 text-sm hover-elevate"
                 data-testid={`suggestion-procedure-${index}`}
               >
-                {suggestion.description}
+                <div className="font-medium">{suggestion.description}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  HCPCS: {suggestion.code}
+                </div>
               </li>
             ))}
           </ul>
