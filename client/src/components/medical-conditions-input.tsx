@@ -118,9 +118,9 @@ export function MedicalConditionsInput({
           const conditionSuggestions: ConditionSuggestion[] = displayNamesRaw.map(
             (item: string | string[], index: number) => {
               const name = Array.isArray(item) ? item[0] : item;
-              // Get first ICD code from each array (they may have multiple)
-              const icd10 = icd10Codes[index]?.[0];
-              const icd9 = icd9Codes[index]?.[0];
+              // ICD codes are returned as simple arrays, one code per result
+              const icd10 = icd10Codes[index] || undefined;
+              const icd9 = icd9Codes[index] || undefined;
               return { name, icd10, icd9 };
             }
           ).filter((s: ConditionSuggestion) => s.name);
