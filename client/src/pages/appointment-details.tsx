@@ -225,12 +225,12 @@ export default function AppointmentDetails() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {diagnosisList.map((diag, index) => (
                   <Badge
                     key={index}
                     variant="secondary"
-                    className="text-sm"
+                    className="text-sm inline-block max-w-full whitespace-normal break-words"
                     data-testid={`diagnosis-badge-${index}`}
                   >
                     {diag}
