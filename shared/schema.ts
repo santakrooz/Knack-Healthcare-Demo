@@ -129,9 +129,9 @@ export interface Patient {
   field_48?: string;
   field_48_raw?: string;
 
-  // Other Dr's Name - field_61
-  field_61?: string;
-  field_61_raw?: string | KnackNameField;
+  // Other Dr's Names - field_103 (paragraph_text)
+  field_103?: string;
+  field_103_raw?: string;
   
   // Profile Image - field_64
   field_64?: string;
