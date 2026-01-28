@@ -130,15 +130,12 @@ function PatientEditForm({
         field_7: { email: data.email },
         field_44: data.phone,
         field_9: data.status,
+        // Always include these fields so clearing them actually updates the backend
+        field_47: data.medicalHistory || "",
+        field_103: data.otherPhysicians || "",
       };
       if (formattedDob) {
         payload.field_46 = formattedDob;
-      }
-      if (data.medicalHistory) {
-        payload.field_47 = data.medicalHistory;
-      }
-      if (data.otherPhysicians) {
-        payload.field_103 = data.otherPhysicians;
       }
       return apiRequest("PUT", `/api/patients/${patientId}`, payload);
     },
