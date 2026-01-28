@@ -229,26 +229,23 @@ export function MedicalConditionsInput({
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
           <ul className="max-h-60 overflow-auto py-1">
-            {suggestions.map((suggestion, index) => {
-              const settings = getConditionSettings();
-              return (
-                <li
-                  key={index}
-                  onClick={() => handleSelectSuggestion(suggestion)}
-                  className="cursor-pointer px-3 py-2 text-sm hover-elevate"
-                  data-testid={`suggestion-condition-${index}`}
-                >
-                  <div className="font-medium">{suggestion.name}</div>
-                  {(settings.showIcd10 || settings.showIcd9) && (suggestion.icd10 || suggestion.icd9) && (
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {settings.showIcd10 && suggestion.icd10 && <span>ICD-10: {suggestion.icd10}</span>}
-                      {settings.showIcd10 && settings.showIcd9 && suggestion.icd10 && suggestion.icd9 && <span> | </span>}
-                      {settings.showIcd9 && suggestion.icd9 && <span>ICD-9: {suggestion.icd9}</span>}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                onClick={() => handleSelectSuggestion(suggestion)}
+                className="cursor-pointer px-3 py-2 text-sm hover-elevate"
+                data-testid={`suggestion-condition-${index}`}
+              >
+                <div className="font-medium">{suggestion.name}</div>
+                {(suggestion.icd10 || suggestion.icd9) && (
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {suggestion.icd10 && <span>ICD-10: {suggestion.icd10}</span>}
+                    {suggestion.icd10 && suggestion.icd9 && <span> | </span>}
+                    {suggestion.icd9 && <span>ICD-9: {suggestion.icd9}</span>}
+                  </div>
+                )}
+              </li>
+            ))}
           </ul>
         </div>
       )}
