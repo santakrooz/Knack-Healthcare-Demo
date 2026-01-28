@@ -146,6 +146,14 @@ export default function Settings() {
     };
   });
 
+  const [phenotypeSettings, setPhenotypeSettings] = useState(() => {
+    const saved = localStorage.getItem("medportal_phenotype_settings");
+    return saved ? JSON.parse(saved) : {
+      showCode: true, // HPO code display (on by default since it's an HPO lookup)
+      codePosition: "prefix", // "prefix" = "HP:0001234 - Description", "append" = "Description [HP:0001234]"
+    };
+  });
+
   useEffect(() => {
     localStorage.setItem("medportal_show_rxcui", showRxcui.toString());
   }, [showRxcui]);
@@ -162,12 +170,20 @@ export default function Settings() {
     localStorage.setItem("medportal_diagnosis_settings", JSON.stringify(diagnosisSettings));
   }, [diagnosisSettings]);
 
+  useEffect(() => {
+    localStorage.setItem("medportal_phenotype_settings", JSON.stringify(phenotypeSettings));
+  }, [phenotypeSettings]);
+
   const updateConditionSetting = (key: string, value: boolean | string) => {
     setConditionSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
   };
 
   const updateDiagnosisSetting = (key: string, value: boolean | string) => {
     setDiagnosisSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
+  };
+
+  const updatePhenotypeSetting = (key: string, value: boolean | string) => {
+    setPhenotypeSettings((prev: Record<string, boolean | string>) => ({ ...prev, [key]: value }));
   };
 
   const updatePhysicianSetting = (key: string, value: boolean) => {
@@ -527,6 +543,40 @@ export default function Settings() {
                 lookup={lookups?.phenotypes} 
                 isLoading={lookupsLoading}
                 icon={<Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />}
+                extraContent={
+                  <div className="space-y-3 pt-2 border-t mt-3">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Code display options:
+                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Show HPO Code</Label>
+                        <Switch 
+                          checked={phenotypeSettings.showCode}
+                          onCheckedChange={(v) => updatePhenotypeSetting("showCode", v)}
+                          data-testid="switch-phenotype-code"
+                        />
+                      </div>
+                      {phenotypeSettings.showCode && (
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">Code Position</Label>
+                          <Select
+                            value={phenotypeSettings.codePosition}
+                            onValueChange={(v) => updatePhenotypeSetting("codePosition", v)}
+                          >
+                            <SelectTrigger className="h-8" data-testid="select-phenotype-code-position">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="prefix">Prefix (HP:0001234 - Description)</SelectItem>
+                              <SelectItem value="append">Append (Description [HP:0001234])</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                }
               />
               <LookupCard 
                 lookup={lookups?.procedures} 

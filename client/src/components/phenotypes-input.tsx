@@ -4,6 +4,35 @@ import { Badge } from "@/components/ui/badge";
 import { cn, parseListField, serializeListField } from "@/lib/utils";
 import { Loader2, Activity, X } from "lucide-react";
 
+interface PhenotypeSettings {
+  showCode: boolean;
+  codePosition: "prefix" | "append";
+}
+
+function getPhenotypeSettings(): PhenotypeSettings {
+  try {
+    const saved = localStorage.getItem("medportal_phenotype_settings");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {}
+  return { showCode: true, codePosition: "prefix" };
+}
+
+function formatPhenotype(code: string, description: string, settings?: PhenotypeSettings): string {
+  const s = settings || getPhenotypeSettings();
+  
+  if (!s.showCode) {
+    return description;
+  }
+  
+  if (s.codePosition === "prefix") {
+    return `${code} - ${description}`;
+  } else {
+    return `${description} [${code}]`;
+  }
+}
+
 interface PhenotypesInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -13,7 +42,7 @@ interface PhenotypesInputProps {
 
 interface HPOResult {
   id: string;
-  name: string;
+  description: string;
 }
 
 export function PhenotypesInput({
@@ -57,16 +86,18 @@ export function PhenotypesInput({
         
         const ids = data[1] || [];
         const displayData = data[3] || [];
+        const settings = getPhenotypeSettings();
         
         const results: HPOResult[] = [];
         for (let i = 0; i < ids.length; i++) {
           const id = ids[i];
           const displayArr = displayData[i];
-          const name = Array.isArray(displayArr) && displayArr.length > 1 ? displayArr[1] : displayArr?.[0] || id;
-          const displayText = `${id} - ${name}`;
+          const description = Array.isArray(displayArr) && displayArr.length > 1 ? displayArr[1] : displayArr?.[0] || id;
+          const formattedText = formatPhenotype(id, description, settings);
           
-          if (!phenotypes.includes(displayText)) {
-            results.push({ id, name: displayText });
+          // Check if already added (match by code or formatted text)
+          if (!phenotypes.some(p => p.includes(id) || p === formattedText)) {
+            results.push({ id, description });
           }
         }
         
@@ -115,7 +146,9 @@ export function PhenotypesInput({
   };
 
   const handleSelectSuggestion = (suggestion: HPOResult) => {
-    addPhenotype(suggestion.name);
+    const settings = getPhenotypeSettings();
+    const formatted = formatPhenotype(suggestion.id, suggestion.description, settings);
+    addPhenotype(formatted);
   };
 
   return (
@@ -165,16 +198,24 @@ export function PhenotypesInput({
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
           <ul className="max-h-60 overflow-auto py-1">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                onClick={() => handleSelectSuggestion(suggestion)}
-                className="cursor-pointer px-3 py-2 text-sm hover-elevate"
-                data-testid={`suggestion-phenotype-${index}`}
-              >
-                {suggestion.name}
-              </li>
-            ))}
+            {suggestions.map((suggestion, index) => {
+              const settings = getPhenotypeSettings();
+              return (
+                <li
+                  key={index}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  className="cursor-pointer px-3 py-2 text-sm hover-elevate"
+                  data-testid={`suggestion-phenotype-${index}`}
+                >
+                  <div className="font-medium">{suggestion.description}</div>
+                  {settings.showCode && (
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      HPO: {suggestion.id}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
