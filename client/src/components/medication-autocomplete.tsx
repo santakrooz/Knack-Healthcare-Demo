@@ -129,7 +129,7 @@ export function MedicationAutocomplete({
 
   const formatDrugValue = (drugName: string, rxcui: string) => {
     if (showRxcui && rxcui) {
-      return `[${rxcui}] ${drugName}`;
+      return `${drugName} [${rxcui}]`;
     }
     return drugName;
   };
