@@ -10,6 +10,24 @@ interface PhysicianResult {
   type: string;
   address: string;
   phone: string;
+  fax: string;
+}
+
+interface PhysicianSettings {
+  showNpi: boolean;
+  showPhone: boolean;
+  showFax: boolean;
+  showAddress: boolean;
+}
+
+function getPhysicianSettings(): PhysicianSettings {
+  const saved = localStorage.getItem("medportal_physician_settings");
+  return saved ? JSON.parse(saved) : {
+    showNpi: false,
+    showPhone: true,
+    showFax: false,
+    showAddress: false,
+  };
 }
 
 interface PhysiciansMultiInputProps {
@@ -55,7 +73,7 @@ export function PhysiciansMultiInput({
       setLoading(true);
       try {
         const response = await fetch(
-          `https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/search?terms=${encodeURIComponent(inputValue)}&maxList=10&df=name.full,NPI,provider_type,addr_practice.full,addr_practice.phone`
+          `https://clinicaltables.nlm.nih.gov/api/npi_idv/v3/search?terms=${encodeURIComponent(inputValue)}&maxList=10&df=name.full,NPI,provider_type,addr_practice.full,addr_practice.phone,addr_practice.fax`
         );
         const data = await response.json();
         
@@ -68,6 +86,7 @@ export function PhysiciansMultiInput({
             type: item[2] || "",
             address: item[3] || "",
             phone: item[4] || "",
+            fax: item[5] || "",
           }));
           
           setSuggestions(formattedSuggestions);
@@ -92,6 +111,42 @@ export function PhysiciansMultiInput({
       return `Dr. ${parts[1]} ${parts[0]}`;
     }
     return `Dr. ${name}`;
+  };
+
+  const formatPhysicianDisplay = (physician: PhysicianResult): string => {
+    // Read settings fresh each time to ensure latest values
+    const settings = getPhysicianSettings();
+    
+    const formattedName = formatPhysicianName(physician.name);
+    const parts: string[] = [formattedName];
+    
+    // Add provider type (always shown)
+    if (physician.type) {
+      parts.push(physician.type);
+    }
+    
+    // Build optional details based on settings
+    const details: string[] = [];
+    if (settings.showNpi && physician.npi) {
+      details.push(`NPI: ${physician.npi}`);
+    }
+    if (settings.showPhone && physician.phone) {
+      details.push(`Tel: ${physician.phone}`);
+    }
+    if (settings.showFax && physician.fax) {
+      details.push(`Fax: ${physician.fax}`);
+    }
+    if (settings.showAddress && physician.address) {
+      details.push(physician.address);
+    }
+    
+    // Format: "Dr. John Smith, Cardiologist | NPI: 123 | Tel: 555-1234"
+    let result = parts.join(", ");
+    if (details.length > 0) {
+      result += " | " + details.join(" | ");
+    }
+    
+    return result;
   };
 
   const addPhysician = (displayName: string) => {
@@ -126,10 +181,7 @@ export function PhysiciansMultiInput({
   };
 
   const handleSelectPhysician = (physician: PhysicianResult) => {
-    const formattedName = formatPhysicianName(physician.name);
-    const displayValue = physician.phone 
-      ? `${formattedName} - ${physician.phone}` 
-      : formattedName;
+    const displayValue = formatPhysicianDisplay(physician);
     addPhysician(displayValue);
   };
 
@@ -183,40 +235,35 @@ export function PhysiciansMultiInput({
 
       {isOpen && suggestions.length > 0 && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
-          <div className="border-b px-3 py-2">
-            <div className="grid grid-cols-4 gap-2 text-xs font-medium text-muted-foreground">
-              <span>Name</span>
-              <span>NPI</span>
-              <span>Type</span>
-              <span>Practice Address</span>
-            </div>
-          </div>
           <ul className="max-h-80 overflow-auto py-1">
             {suggestions.map((physician, index) => (
               <li
                 key={`${physician.npi}-${index}`}
                 onClick={() => handleSelectPhysician(physician)}
-                className="cursor-pointer px-3 py-2 hover-elevate"
+                className="cursor-pointer px-3 py-3 hover-elevate border-b last:border-b-0"
                 data-testid={`suggestion-physician-${index}`}
               >
-                <div className="grid grid-cols-4 gap-2 text-sm">
-                  <div className="font-medium truncate" title={physician.name}>
-                    {physician.name}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm">{formatPhysicianName(physician.name)}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{physician.type}</p>
                   </div>
-                  <div className="text-muted-foreground truncate">
-                    {physician.npi}
-                  </div>
-                  <div className="text-muted-foreground truncate" title={physician.type}>
-                    {physician.type}
-                  </div>
-                  <div className="text-muted-foreground truncate" title={physician.address}>
-                    {physician.address}
-                  </div>
+                  <span className="text-xs font-mono text-primary shrink-0">
+                    NPI: {physician.npi}
+                  </span>
                 </div>
-                {physician.phone && (
-                  <div className="mt-1 text-xs text-primary">
-                    Phone: {physician.phone}
-                  </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
+                  {physician.phone && (
+                    <span>Tel: {physician.phone}</span>
+                  )}
+                  {physician.fax && (
+                    <span>Fax: {physician.fax}</span>
+                  )}
+                </div>
+                {physician.address && (
+                  <p className="text-xs text-muted-foreground mt-1 truncate" title={physician.address}>
+                    {physician.address}
+                  </p>
                 )}
               </li>
             ))}

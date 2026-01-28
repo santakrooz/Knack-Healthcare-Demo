@@ -19,29 +19,14 @@ interface PhysicianSettings {
   showAddress: boolean;
 }
 
-function usePhysicianSettings(): PhysicianSettings {
-  const [settings, setSettings] = useState<PhysicianSettings>(() => {
-    const saved = localStorage.getItem("medportal_physician_settings");
-    return saved ? JSON.parse(saved) : {
-      showNpi: false,
-      showPhone: true,
-      showFax: false,
-      showAddress: false,
-    };
-  });
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const saved = localStorage.getItem("medportal_physician_settings");
-      if (saved) {
-        setSettings(JSON.parse(saved));
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  return settings;
+function getPhysicianSettings(): PhysicianSettings {
+  const saved = localStorage.getItem("medportal_physician_settings");
+  return saved ? JSON.parse(saved) : {
+    showNpi: false,
+    showPhone: true,
+    showFax: false,
+    showAddress: false,
+  };
 }
 
 interface NPIPhysicianAutocompleteProps {
@@ -63,7 +48,6 @@ export function NPIPhysicianAutocomplete({
   const [isOpen, setIsOpen] = useState(false);
   const [hasSelected, setHasSelected] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const settings = usePhysicianSettings();
 
   useEffect(() => {
     setInputValue(value);
@@ -138,6 +122,9 @@ export function NPIPhysicianAutocomplete({
   };
 
   const formatPhysicianDisplay = (physician: PhysicianResult): string => {
+    // Read settings fresh each time to ensure latest values
+    const settings = getPhysicianSettings();
+    
     const formattedName = formatPhysicianName(physician.name);
     const parts: string[] = [formattedName];
     
