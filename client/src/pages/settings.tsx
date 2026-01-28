@@ -327,7 +327,7 @@ export default function Settings() {
                     <div className="space-y-0.5">
                       <Label className="text-sm">Show RXCUI Code</Label>
                       <p className="text-xs text-muted-foreground">
-                        Prefix medication results with RXCUI code
+                        Append RXCUI code to medication results
                       </p>
                     </div>
                     <Switch 
