@@ -112,9 +112,27 @@ export default function Settings() {
     return saved === "true";
   });
 
+  const [physicianSettings, setPhysicianSettings] = useState(() => {
+    const saved = localStorage.getItem("medportal_physician_settings");
+    return saved ? JSON.parse(saved) : {
+      showNpi: false,
+      showPhone: true,
+      showFax: false,
+      showAddress: false,
+    };
+  });
+
   useEffect(() => {
     localStorage.setItem("medportal_show_rxcui", showRxcui.toString());
   }, [showRxcui]);
+
+  useEffect(() => {
+    localStorage.setItem("medportal_physician_settings", JSON.stringify(physicianSettings));
+  }, [physicianSettings]);
+
+  const updatePhysicianSetting = (key: string, value: boolean) => {
+    setPhysicianSettings((prev: Record<string, boolean>) => ({ ...prev, [key]: value }));
+  };
 
   const { data: lookups, isLoading: lookupsLoading, refetch: refetchLookups, isFetching } = useQuery<HealthcareLookups>({
     queryKey: ["/api/healthcare-lookups/versions"],
@@ -317,6 +335,47 @@ export default function Settings() {
                 lookup={lookups?.physicians} 
                 isLoading={lookupsLoading} 
                 icon={<UserRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+                extraContent={
+                  <div className="space-y-3 pt-2 border-t mt-3">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      Include in physician display (Name & Type always shown):
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">NPI #</Label>
+                        <Switch 
+                          checked={physicianSettings.showNpi}
+                          onCheckedChange={(v) => updatePhysicianSetting("showNpi", v)}
+                          data-testid="switch-physician-npi"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Phone</Label>
+                        <Switch 
+                          checked={physicianSettings.showPhone}
+                          onCheckedChange={(v) => updatePhysicianSetting("showPhone", v)}
+                          data-testid="switch-physician-phone"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Fax</Label>
+                        <Switch 
+                          checked={physicianSettings.showFax}
+                          onCheckedChange={(v) => updatePhysicianSetting("showFax", v)}
+                          data-testid="switch-physician-fax"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Address</Label>
+                        <Switch 
+                          checked={physicianSettings.showAddress}
+                          onCheckedChange={(v) => updatePhysicianSetting("showAddress", v)}
+                          data-testid="switch-physician-address"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                }
               />
               <LookupCard 
                 lookup={lookups?.prescriptions} 
