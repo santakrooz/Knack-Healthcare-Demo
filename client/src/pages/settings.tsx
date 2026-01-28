@@ -16,7 +16,14 @@ import {
   Stethoscope,
   ExternalLink,
   RefreshCw,
+  UserRound,
+  Pill,
+  HeartPulse,
+  FileText,
+  Activity,
+  Scissors,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface DataSource {
   name: string;
@@ -41,7 +48,14 @@ interface HealthcareLookups {
   procedures: LookupInfo;
 }
 
-function LookupCard({ lookup, isLoading }: { lookup?: LookupInfo; isLoading: boolean }) {
+interface LookupCardProps {
+  lookup?: LookupInfo;
+  isLoading: boolean;
+  icon: React.ReactNode;
+  extraContent?: React.ReactNode;
+}
+
+function LookupCard({ lookup, isLoading, icon, extraContent }: LookupCardProps) {
   if (isLoading) {
     return (
       <div className="space-y-3 rounded-lg border p-4">
@@ -58,7 +72,10 @@ function LookupCard({ lookup, isLoading }: { lookup?: LookupInfo; isLoading: boo
   return (
     <div className="space-y-3 rounded-lg border p-4">
       <div className="flex items-center justify-between gap-2">
-        <h4 className="font-medium">{lookup.name}</h4>
+        <div className="flex items-center gap-2">
+          {icon}
+          <h4 className="font-medium">{lookup.name}</h4>
+        </div>
         <a
           href={lookup.docsUrl}
           target="_blank"
@@ -84,11 +101,21 @@ function LookupCard({ lookup, isLoading }: { lookup?: LookupInfo; isLoading: boo
           ))}
         </ul>
       </div>
+      {extraContent}
     </div>
   );
 }
 
 export default function Settings() {
+  const [showRxcui, setShowRxcui] = useState(() => {
+    const saved = localStorage.getItem("medportal_show_rxcui");
+    return saved === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("medportal_show_rxcui", showRxcui.toString());
+  }, [showRxcui]);
+
   const { data: lookups, isLoading: lookupsLoading, refetch: refetchLookups, isFetching } = useQuery<HealthcareLookups>({
     queryKey: ["/api/healthcare-lookups/versions"],
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -286,12 +313,51 @@ export default function Settings() {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <LookupCard lookup={lookups?.physicians} isLoading={lookupsLoading} />
-              <LookupCard lookup={lookups?.prescriptions} isLoading={lookupsLoading} />
-              <LookupCard lookup={lookups?.conditions} isLoading={lookupsLoading} />
-              <LookupCard lookup={lookups?.diagnosis} isLoading={lookupsLoading} />
-              <LookupCard lookup={lookups?.phenotypes} isLoading={lookupsLoading} />
-              <LookupCard lookup={lookups?.procedures} isLoading={lookupsLoading} />
+              <LookupCard 
+                lookup={lookups?.physicians} 
+                isLoading={lookupsLoading} 
+                icon={<UserRound className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+              />
+              <LookupCard 
+                lookup={lookups?.prescriptions} 
+                isLoading={lookupsLoading}
+                icon={<Pill className="h-4 w-4 text-green-600 dark:text-green-400" />}
+                extraContent={
+                  <div className="flex items-center justify-between pt-2 border-t mt-3">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm">Show RXCUI Code</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Prefix medication results with RXCUI code
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={showRxcui}
+                      onCheckedChange={setShowRxcui}
+                      data-testid="switch-show-rxcui"
+                    />
+                  </div>
+                }
+              />
+              <LookupCard 
+                lookup={lookups?.conditions} 
+                isLoading={lookupsLoading}
+                icon={<HeartPulse className="h-4 w-4 text-red-600 dark:text-red-400" />}
+              />
+              <LookupCard 
+                lookup={lookups?.diagnosis} 
+                isLoading={lookupsLoading}
+                icon={<FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+              />
+              <LookupCard 
+                lookup={lookups?.phenotypes} 
+                isLoading={lookupsLoading}
+                icon={<Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />}
+              />
+              <LookupCard 
+                lookup={lookups?.procedures} 
+                isLoading={lookupsLoading}
+                icon={<Scissors className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />}
+              />
               <p className="text-xs text-muted-foreground pt-2">
                 Data provided by{" "}
                 <a

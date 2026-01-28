@@ -16,6 +16,22 @@ interface MedicationAutocompleteProps {
   className?: string;
 }
 
+function useShowRxcui() {
+  const [showRxcui, setShowRxcui] = useState(() => {
+    return localStorage.getItem("medportal_show_rxcui") === "true";
+  });
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setShowRxcui(localStorage.getItem("medportal_show_rxcui") === "true");
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  return showRxcui;
+}
+
 export function MedicationAutocomplete({
   value,
   onChange,
@@ -29,6 +45,7 @@ export function MedicationAutocomplete({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const showRxcui = useShowRxcui();
 
   useEffect(() => {
     setInputValue(value);
@@ -71,18 +88,18 @@ export function MedicationAutocomplete({
       setLoading(true);
       try {
         const response = await fetch(
-          `https://clinicaltables.nlm.nih.gov/api/rxterms/v3/search?terms=${encodeURIComponent(inputValue)}&ef=STRENGTHS_AND_FORMS&maxList=10`
+          `https://clinicaltables.nlm.nih.gov/api/rxterms/v3/search?terms=${encodeURIComponent(inputValue)}&ef=STRENGTHS_AND_FORMS,RXCUIS&maxList=10`
         );
         const data = await response.json();
         
         // API response format: [count, names, extras, displayNames]
-        // where extras = { STRENGTHS_AND_FORMS: [[strengths1], [strengths2], ...] }
+        // where extras = { STRENGTHS_AND_FORMS: [[strengths1], [strengths2], ...], RXCUIS: [[rxcui1], ...] }
         const [, names, extras] = data;
         
         if (names && names.length > 0) {
           const formattedSuggestions: DrugSuggestion[] = names.map((name: string, index: number) => ({
             name,
-            rxcui: name,
+            rxcui: extras?.RXCUIS?.[index]?.[0] || "",
             strengths: normalizeStrengths(extras?.STRENGTHS_AND_FORMS?.[index]),
           }));
           
@@ -110,14 +127,22 @@ export function MedicationAutocomplete({
     onChange(newValue);
   };
 
+  const formatDrugValue = (drugName: string, rxcui: string) => {
+    if (showRxcui && rxcui) {
+      return `[${rxcui}] ${drugName}`;
+    }
+    return drugName;
+  };
+
   const handleSelectDrug = (drug: DrugSuggestion) => {
     setSelectedDrug(drug);
     if (drug.strengths.length > 0) {
       setShowStrengths(true);
       setSuggestions([]);
     } else {
-      setInputValue(drug.name);
-      onChange(drug.name);
+      const formattedValue = formatDrugValue(drug.name, drug.rxcui);
+      setInputValue(formattedValue);
+      onChange(formattedValue);
       setIsOpen(false);
     }
   };
@@ -125,8 +150,9 @@ export function MedicationAutocomplete({
   const handleSelectStrength = (strength: string) => {
     const drugName = selectedDrug?.name?.replace(/\s*\(.*\)$/, "") || "";
     const fullValue = `${drugName} ${strength.trim()}`;
-    setInputValue(fullValue);
-    onChange(fullValue);
+    const formattedValue = formatDrugValue(fullValue, selectedDrug?.rxcui || "");
+    setInputValue(formattedValue);
+    onChange(formattedValue);
     setShowStrengths(false);
     setSelectedDrug(null);
     setIsOpen(false);
@@ -164,11 +190,16 @@ export function MedicationAutocomplete({
               >
                 <div className="flex-1">
                   <p className="text-sm font-medium">{drug.name}</p>
-                  {drug.strengths.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      {drug.strengths.length} strength{drug.strengths.length !== 1 ? "s" : ""} available
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {showRxcui && drug.rxcui && (
+                      <span className="text-xs text-primary font-mono">RXCUI: {drug.rxcui}</span>
+                    )}
+                    {drug.strengths.length > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {drug.strengths.length} strength{drug.strengths.length !== 1 ? "s" : ""} available
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {drug.strengths.length > 0 && (
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
