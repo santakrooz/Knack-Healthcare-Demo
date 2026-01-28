@@ -233,11 +233,15 @@ export default function PatientProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm whitespace-pre-wrap">{medicalNotes}</p>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {parseListField(medicalNotes).map((condition, index) => (
+                    <div
+                      key={index}
+                      className="px-3 py-1.5 rounded-md bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300 text-sm border border-red-200 dark:border-red-800"
+                    >
+                      {condition}
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
