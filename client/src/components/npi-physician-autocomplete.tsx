@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Loader2, Stethoscope } from "lucide-react";
+import { Loader2, UserRound } from "lucide-react";
 
 interface PhysicianResult {
   name: string;
@@ -186,7 +186,7 @@ export function NPIPhysicianAutocomplete({
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           ) : (
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
+            <UserRound className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
       </div>

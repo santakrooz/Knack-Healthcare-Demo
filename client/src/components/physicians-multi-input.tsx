@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn, parseListField, serializeListField } from "@/lib/utils";
-import { Loader2, Stethoscope, X } from "lucide-react";
+import { Loader2, UserRound, X } from "lucide-react";
 
 interface PhysicianResult {
   name: string;
@@ -228,7 +228,7 @@ export function PhysiciansMultiInput({
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           ) : (
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
+            <UserRound className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
       </div>
